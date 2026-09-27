@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081116">
+<meta name="description" content="Nelgi, tu coach de inglés: habla, te escucha y te corrige al instante.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Nelgi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#081116; --bg-2:#0E1C22; --surface:#13242B; --surface-2:#1A2F37; --line:#24404A;
+  --ink:#ECF3F2; --ink-2:#93A9AF; --ink-3:#5F7880;
+  --warm:#FFB47E; --warm-ink:#2A1405;
+  --del:#FF8E86; --del-bg:rgba(255,110,100,.14); --ins:#86E3AE; --ins-bg:rgba(90,210,140,.14);
+  --good:#86E3AE; --gold:#FFD27A; --end:#E5484D; --rec:#FF5A5F;
+  --p:#6FE3D2; --p-ink:#062019;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button,select,textarea,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--p)}
+:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase}
+.app{height:100%;display:grid;grid-template-rows:minmax(0,1fr) auto;padding-top:var(--safe-t)}
+.screen{min-height:0;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr)}
+.scroll{overflow-y:auto;overflow-x:hidden}
+.wrap{max-width:760px;width:100%;margin:0 auto;padding-inline:16px}
+.btn{border-radius:999px;padding:11px 20px;font-weight:700;border:1px solid var(--line);background:var(--surface)}
+.btn.main{background:var(--p);color:var(--p-ink);border-color:var(--p)}
+.btn.small{padding:6px 12px;font-size:14px;font-weight:600}
+.btn:disabled{opacity:.45;cursor:default}
+.help{font-size:13.5px;color:var(--ink-2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+h1,h2,h3{text-wrap:balance}
+
+/* ---------- tabs ---------- */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--bg-2);padding-bottom:var(--safe-b)}
+.tab{background:none;border:none;padding:8px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink-3);font-size:11.5px}
+.tab svg{width:22px;height:22px}
+.tab[aria-selected="true"]{color:var(--p)}
+
+/* ---------- conversation ---------- */
+#s-talk{grid-template-rows:auto auto auto minmax(0,1fr) auto;background:radial-gradient(90% 50% at 50% 12%, rgba(111,227,210,.15) 0%, var(--bg) 70%)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 4px;max-width:880px;width:100%;margin:0 auto;min-width:0}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand b{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1}
+.brand span{font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live{width:7px;height:7px;border-radius:50%;background:#3DDC84;flex:none}
+.stats{display:flex;gap:6px;flex:none;align-items:center}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:13px;display:flex;gap:5px;align-items:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.18)}}
+.gear{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:16px}
+.topics{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:6px 16px 2px;max-width:880px;width:100%;margin:0 auto}
+.topics::-webkit-scrollbar{display:none}
+.topic{flex:none;border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13.5px;white-space:nowrap;color:var(--ink-2)}
+.topic[aria-pressed="true"]{background:var(--p);color:var(--p-ink);border-color:var(--p);font-weight:700}
+.stage{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 16px 10px;max-width:760px;width:100%;margin:0 auto;position:relative;min-width:0}
+.orbwrap{position:relative;width:min(140px,19vh);aspect-ratio:1;max-width:100%}
+.orb{width:100%;height:100%;display:block}
+.orbname{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:clamp(20px,3.4vh,30px);color:var(--p-ink);pointer-events:none}
+.state{color:var(--ink-2);min-height:18px}
+.state.rec{color:var(--rec)}
+.pop{position:absolute;top:8px;left:50%;transform:translate(-50%,0) scale(.6);opacity:0;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;transition:transform .35s cubic-bezier(.2,1.4,.4,1),opacity .25s;pointer-events:none;z-index:3}
+.pop.show{opacity:1;transform:translate(-50%,-4px) scale(1)}
+.pop.good{color:var(--good)} .pop.fix{color:var(--gold)}
+.caption{font-family:var(--display);font-size:clamp(19px,3.2vw,24px);line-height:1.35;text-align:center;text-wrap:balance;min-height:2.7em;width:100%;max-width:34ch;max-height:5.5em;overflow-y:auto;overflow-wrap:anywhere}
+.caption .w{border-radius:5px;padding:0 1px;cursor:pointer;color:var(--ink-2);transition:color .15s,background .15s}
+.caption.done .w,.caption .w.said{color:var(--ink)}
+.caption .w.now{background:rgba(111,227,210,.35);color:#fff}
+.caption .cursor{display:inline-block;width:2px;height:1em;background:var(--p);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+.caption.interim{color:var(--warm);font-style:italic}
+@keyframes blink{50%{opacity:0}}
+.voicebar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.vb{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13.5px}
+.gloss{position:absolute;bottom:-6px;left:50%;transform:translate(-50%,100%);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;z-index:4;width:max-content;max-width:min(92vw,340px);box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:6px}
+.gloss b{color:var(--p)} .gloss i{color:var(--ink-2);font-size:13px}
+.startbtn{margin-top:4px;background:var(--p);color:var(--p-ink);border:none;border-radius:999px;padding:13px 26px;font-weight:700;font-size:17px;animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(111,227,210,.5)}70%{box-shadow:0 0 0 14px rgba(111,227,210,0)}100%{box-shadow:0 0 0 0 rgba(111,227,210,0)}}
+.warnbox{background:rgba(255,180,126,.1);border:1px solid rgba(255,180,126,.4);color:var(--warm);border-radius:12px;padding:9px 12px;font-size:13.5px;max-width:48ch}
+.warnbox b{color:var(--ink)}
+
+.tx{overflow-y:auto;overflow-x:hidden;border-top:1px solid var(--line);background:rgba(4,10,13,.45);min-width:0}
+.tx-in{max-width:760px;margin:0 auto;padding:14px 16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.m{max-width:86%;display:flex;flex-direction:column;gap:5px;animation:rise .35s ease-out both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.m.t{align-self:flex-start} .m.u{align-self:flex-end;align-items:flex-end}
+.b{padding:9px 14px;border-radius:18px;font-size:15.5px;overflow-wrap:anywhere}
+.t .b{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:5px}
+.u .b{background:var(--warm);color:var(--warm-ink);border-bottom-right-radius:5px}
+.u .via{font-size:11.5px;color:var(--ink-3)}
+.play{background:none;border:none;color:var(--p);padding:0 0 0 6px;font-size:13px;white-space:nowrap}
+.fx{align-self:flex-end;max-width:90%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;animation:rise .4s ease-out both}
+.fx .mono{color:var(--gold)} .fx.ok .mono{color:var(--good)}
+.diff{font-size:15.5px;line-height:1.7;overflow-wrap:anywhere}
+.diff del{color:var(--del);background:var(--del-bg);text-decoration-thickness:2px;border-radius:4px;padding:0 3px}
+.diff ins{color:var(--ins);background:var(--ins-bg);text-decoration:none;border-radius:4px;padding:0 3px;font-weight:700}
+.fx ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink-2)}
+.nat{font-size:14px;color:var(--ink-2)} .nat span{color:var(--ink);font-style:italic}
+.hear{display:flex;gap:6px;flex-wrap:wrap}
+.hear button,.chipbtn{border:1px solid var(--line);background:var(--bg-2);color:var(--p);border-radius:999px;padding:4px 11px;font-size:13px}
+.pron{border-top:1px dashed var(--line);padding-top:7px;display:flex;flex-direction:column;gap:8px}
+.pron .mono{color:var(--warm)}
+.pw{display:flex;flex-direction:column;gap:4px}
+.pw .top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.pw .top b{font-family:var(--display);font-size:18px;color:var(--ink)}
+.pw .top s{color:var(--del);font-size:14px}
+.pw .ipa{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.pw .tip{font-size:14px;color:var(--ink-2)}
+.pw .res{font-size:13.5px}
+.sys{align-self:center;font-size:13.5px;color:var(--warm);text-align:center;max-width:46ch}
+
+.dock{padding:8px 16px 10px;border-top:1px solid var(--line);background:var(--bg-2);min-width:0}
+.dock-in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ideas{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.ideas::-webkit-scrollbar{display:none}
+.idea{flex:none;max-width:78vw;text-align:left;border:1px dashed var(--p);background:transparent;color:var(--ink);border-radius:14px;padding:6px 12px;font-size:14px}
+.row{display:flex;gap:8px;align-items:flex-end;min-width:0}
+.tool{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:17px}
+.tool.end{background:transparent;border-color:var(--end);color:var(--end);font-size:13px;font-weight:700}
+textarea{flex:1;min-width:0;resize:none;min-height:44px;max-height:120px;border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:10px 16px;font-size:16px;line-height:1.4}
+textarea:focus{border-color:var(--p);outline:none}
+.send{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--p);display:grid;place-items:center}
+.send:disabled{opacity:.4}
+.microw{display:flex;align-items:center;justify-content:center;gap:14px}
+.mic{width:64px;height:64px;border-radius:50%;border:none;background:var(--p);color:var(--p-ink);display:grid;place-items:center;box-shadow:0 6px 24px rgba(111,227,210,.25)}
+.mic svg{width:28px;height:28px}
+.mic.on{background:var(--rec);color:#fff;animation:recpulse 1.4s infinite}
+@keyframes recpulse{0%{box-shadow:0 0 0 0 rgba(255,90,95,.55)}70%{box-shadow:0 0 0 16px rgba(255,90,95,0)}100%{box-shadow:0 0 0 0 rgba(255,90,95,0)}}
+.mic:disabled{opacity:.45}
+.handsfree{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+.handsfree[aria-pressed="true"]{color:var(--p);border-color:var(--p)}
+
+/* ---------- pronunciation drill ---------- */
+#s-drill,#s-words,#s-progress{background:radial-gradient(100% 50% at 50% 0%, rgba(111,227,210,.10) 0%, var(--bg) 60%)}
+.page{padding-block:18px 28px;display:flex;flex-direction:column;gap:16px}
+.page h1{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.1;margin:0;letter-spacing:-.02em}
+.page h1+p{margin:-8px 0 0;color:var(--ink-2)}
+.decks{display:flex;gap:6px;flex-wrap:wrap}
+.deck{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 13px;font-size:14px;color:var(--ink-2)}
+.deck[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.drillcard{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px 18px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.drillcard .count{color:var(--ink-3)}
+.target{font-family:var(--display);font-size:clamp(24px,6vw,32px);line-height:1.25;font-weight:600;overflow-wrap:anywhere}
+.target .ok{color:var(--good)} .target .bad{color:var(--del);text-decoration:underline wavy;text-decoration-thickness:1px;text-underline-offset:5px}
+.focus{font-size:14px;color:var(--ink-2);max-width:40ch}
+.focus b{color:var(--warm)}
+.dbtns{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.heard{font-size:15px;color:var(--ink-2);min-height:22px}
+.heard b{color:var(--ink)}
+.score{font-family:var(--display);font-weight:800;font-size:42px;line-height:1;font-variant-numeric:tabular-nums}
+.meter{width:100%;max-width:320px;height:8px;border-radius:99px;background:var(--bg-2);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--good);transition:width .6s ease-out}
+.nav{display:flex;justify-content:space-between;width:100%}
+.tipbox{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left;font-size:14px;width:100%}
+
+/* ---------- words ---------- */
+.wlist{display:flex;flex-direction:column}
+.witem{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;border-top:1px solid var(--line);padding-block:11px}
+.witem b{font-family:var(--display);font-size:18px}
+.witem span{color:var(--ink-2);font-size:14px}
+.witem .acts{display:flex;gap:6px;grid-row:span 2}
+.iconb{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--p);display:grid;place-items:center;font-size:14px}
+.empty{color:var(--ink-2);text-align:center;padding:30px 10px}
+
+/* ---------- progress ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.kpi b{font-family:var(--display);font-size:24px;display:block;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi span{font-size:12.5px;color:var(--ink-2)}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--ink-3);font-family:var(--mono);font-size:9px}
+.sess{display:flex;flex-direction:column}
+.sess div{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border-top:1px solid var(--line);padding-block:10px;font-size:14.5px}
+.sess .sc{font-family:var(--display);font-weight:800;font-size:20px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--bg-2);border:1px solid var(--line)}
+.sess i{color:var(--ink-2);font-style:normal;font-size:13px}
+
+/* ---------- summary ---------- */
+.overlay{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto}
+.sum-in{max-width:720px;margin:0 auto;padding:calc(24px + var(--safe-t)) 16px calc(32px + var(--safe-b));display:flex;flex-direction:column;gap:18px}
+.sum-top{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ring{position:relative;width:124px;height:124px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .n{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:800;font-size:38px;line-height:1}
+.ring .n small{display:block;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink-2);letter-spacing:.08em;margin-top:4px}
+.sum-top h2{font-family:var(--display);font-weight:800;font-size:28px;margin:0;line-height:1.1}
+.sum-top p{margin:4px 0 0;color:var(--ink-2)}
+.sec h3{margin:0 0 6px;color:var(--ink-2)}
+.sec ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.phr{display:flex;flex-direction:column}
+.phr div{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start;border-top:1px solid var(--line);padding-block:9px}
+.phr button{grid-row:span 2}
+.phr i{color:var(--ink-2);font-size:14px}
+.loading{display:flex;gap:10px;align-items:center;color:var(--ink-2)}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--p);margin-right:4px;animation:bl 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+/* ---------- sheet ---------- */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg-2);border:1px solid var(--line);border-bottom:none;border-radius:20px 20px 0 0;width:100%;max-width:560px;padding:18px 16px calc(20px + var(--safe-b));display:flex;flex-direction:column;gap:16px;max-height:92%;overflow-y:auto;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h2{font-family:var(--display);font-size:20px;margin:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.mono{color:var(--ink-2)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 14px;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+select,input[type=text],input[type=password]{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15px}
+.rowbtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- setup ---------- */
+#setup{position:fixed;inset:0;z-index:40;overflow-y:auto;background:radial-gradient(120% 60% at 50% -10%, #133540 0%, var(--bg) 60%)}
+.setup-in{max-width:560px;margin:0 auto;padding:calc(32px + var(--safe-t)) 16px calc(32px + var(--safe-b));display:flex;flex-direction:column;gap:18px}
+.setup-in h1{font-family:var(--display);font-weight:800;font-size:clamp(32px,8vw,44px);line-height:1.02;margin:0;letter-spacing:-.02em}
+.setup-in h1 em{font-style:normal;color:var(--p)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.status{font-size:14px;min-height:20px}
+.status.ok{color:var(--good)} .status.err{color:var(--del)}
+
+@media (max-height:700px){ .orbwrap{width:min(96px,15vh)} .caption{font-size:18px} .mic{width:56px;height:56px} }
+@media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ TALK ============ -->
+  <section class="screen" id="s-talk">
+    <div class="bar">
+      <div class="brand"><b>Nelgi</b><span><i class="live"></i><span id="clock">tu coach de inglés</span></span></div>
+      <div class="stats">
+        <span class="stat" id="sStreak" title="Frases correctas seguidas">🔥 <b>0</b></span>
+        <span class="stat" id="sXp" title="Puntos de hoy">⭐ <b>0</b></span>
+        <button class="gear" id="gearBtn" type="button" aria-label="Ajustes">⚙️</button>
+      </div>
+    </div>
+    <div class="topics" id="topics" role="group" aria-label="Tema"></div>
+    <div class="stage" id="stage">
+      <div class="pop" id="pop"></div>
+      <div class="orbwrap"><canvas class="orb" id="orb" width="320" height="320" aria-hidden="true"></canvas><div class="orbname">N</div></div>
+      <div class="state mono" id="state">En línea</div>
+      <div class="caption done" id="caption" aria-live="polite"></div>
+      <button class="startbtn" id="startBtn" type="button">▶ Empezar a hablar con Nelgi</button>
+      <div class="voicebar" id="voicebar" hidden>
+        <button class="vb" id="repeatBtn" type="button">🔁 Repetir</button>
+        <button class="vb" id="slowBtn" type="button">🐢 Más lento</button>
+      </div>
+      <div class="warnbox" id="talkWarn" hidden></div>
+    </div>
+    <div class="tx" id="tx"><div class="tx-in" id="txIn"></div></div>
+    <div class="dock">
+      <div class="dock-in">
+        <div class="ideas" id="ideas"></div>
+        <div class="microw">
+          <button class="tool" id="hintBtn" type="button" aria-label="Ideas para responder" title="Ideas para responder">💡</button>
+          <button class="handsfree" id="hfBtn" type="button" aria-pressed="false" title="Nelgi te escucha automáticamente después de hablar">📞 Modo llamada</button>
+          <button class="mic" id="micBtn" type="button" aria-label="Hablar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
+          <button class="tool end" id="endBtn" type="button" title="Terminar y ver evaluación">Fin</button>
+        </div>
+        <form class="row" id="form">
+          <textarea id="box" rows="1" placeholder="O escribe en inglés…" aria-label="Escribe en inglés"></textarea>
+          <button class="send" id="send" type="submit" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DRILL ============ -->
+  <section class="screen scroll" id="s-drill" hidden>
+    <div class="wrap page">
+      <h1>Pronunciación</h1>
+      <p>Escucha, repite y Nelgi te dice qué palabras se entendieron bien.</p>
+      <div class="decks" id="decks" role="group" aria-label="Tipo de práctica"></div>
+      <div class="drillcard" id="drillcard"></div>
+    </div>
+  </section>
+
+  <!-- ============ WORDS ============ -->
+  <section class="screen scroll" id="s-words" hidden>
+    <div class="wrap page">
+      <h1>Mis palabras</h1>
+      <p>Las que guardaste al traducir y las que te costó pronunciar.</p>
+      <div class="rowbtns"><button class="btn small main" id="practiceWords" type="button">🎯 Practicar todas</button></div>
+      <div class="wlist" id="wlist"></div>
+    </div>
+  </section>
+
+  <!-- ============ PROGRESS ============ -->
+  <section class="screen scroll" id="s-progress" hidden>
+    <div class="wrap page" id="progIn"></div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="talk" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg>Conversar</button>
+    <button class="tab" role="tab" data-tab="drill" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v4"/></svg>Pronunciar</button>
+    <button class="tab" role="tab" data-tab="words" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13"/></svg>Palabras</button>
+    <button class="tab" role="tab" data-tab="progress" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progreso</button>
+  </nav>
+</div>
+
+<!-- ============ SUMMARY ============ -->
+<div class="overlay" id="summary" hidden><div class="sum-in" id="sumIn"></div></div>
+
+<!-- ============ SETTINGS ============ -->
+<div class="sheet-bg" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Ajustes</h2>
+    <div class="field"><span class="mono">Tu nivel</span><div class="seg" id="levelSeg"></div></div>
+    <div class="field"><label class="mono" for="voiceSel">Voz de Nelgi</label><select id="voiceSel"></select></div>
+    <div class="field"><span class="mono">Velocidad de la voz</span><div class="seg" id="rateSeg"></div></div>
+    <div class="field"><span class="mono">Leer mi frase corregida</span><div class="seg" id="readFixSeg"></div><span class="help">Si te equivocas, Nelgi dice primero la frase correcta y luego te responde.</span></div>
+    <div class="field"><span class="mono">Enviar al terminar de hablar</span><div class="seg" id="autoSendSeg"></div><span class="help">Si lo apagas, puedes revisar lo que se entendió antes de enviarlo.</span></div>
+    <div class="field"><label class="mono" for="modelSel">Modelo de Gemini</label><select id="modelSel"></select><span class="help" id="modelInfo"></span></div>
+    <div class="rowbtns"><button class="btn main" id="testVoice" type="button">🔊 Probar voz</button><button class="btn" id="closeSheet" type="button">Listo</button></div>
+    <div class="rowbtns"><button class="btn small" id="changeKey" type="button">Cambiar clave de Gemini</button><button class="btn small" id="exportBtn" type="button">Copiar respaldo</button><button class="btn small" id="resetBtn" type="button">Borrar todo</button></div>
+    <span class="help" id="sheetMsg"></span>
+  </div>
+</div>
+
+<!-- ============ SETUP ============ -->
+<div id="setup" hidden>
+  <div class="setup-in">
+    <span class="mono" style="color:var(--ink-3)">Configuración · 2 minutos</span>
+    <h1>Hola, soy <em>Nelgi</em>. Vamos a practicar inglés hablando.</h1>
+    <p class="help" style="font-size:15px">Te escucho, te respondo con voz y te corrijo gramática y pronunciación al instante. Para pensar uso Gemini de Google, que es gratis con tu propia clave.</p>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <b>1. Consigue tu clave gratis de Gemini</b>
+      <ol class="steps help">
+        <li>Abre <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> e inicia sesión con tu cuenta de Google.</li>
+        <li>Toca <b>Create API key</b> (Crear clave de API).</li>
+        <li>Cópiala y pégala aquí abajo.</li>
+      </ol>
+      <input type="password" id="keyInput" placeholder="Pega tu clave (empieza con AIza…)" autocomplete="off" spellcheck="false">
+      <button class="btn main" id="keyTest" type="button">Conectar con Gemini</button>
+      <div class="status" id="keyStatus"></div>
+      <span class="help">La clave se guarda solo en este teléfono. En el plan gratis, Google puede usar las conversaciones para mejorar sus productos.</span>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <b>2. Tu nivel de inglés</b>
+      <div class="seg" id="setupLevel"></div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <b>3. Prueba micrófono y voz</b>
+      <div class="rowbtns"><button class="btn small" id="setupMic" type="button">🎙️ Probar micrófono</button><button class="btn small" id="setupVoice" type="button">🔊 Probar voz</button></div>
+      <div class="status" id="devStatus"></div>
+    </div>
+    <button class="btn main" id="setupDone" type="button" disabled style="padding:14px">Empezar</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= DATA ================= */
+const TOPICS={
+  libre:{label:"Charla libre",mode:"Free conversation. Chat as yourself, Nelgi, about anything the learner brings up: their day, work, family, hobbies, news, Costa Rica.",open:"Hey, I'm Nelgi, your English coach! We can talk about anything you like. So, how's your day going?"},
+  dudas:{label:"Pregúntame",mode:"Question mode. The learner asks about English: meanings, how to say something, grammar, pronunciation tips, idioms. Answer as Nelgi in simple, clear spoken English, give one short example, then invite the next question.",open:"Ask me anything about English: a word, a phrase, grammar, how to say something. What would you like to know?"},
+  trabajo:{label:"Reunión de trabajo",mode:"Role-play: you play Mark, CFO at a US partner company, in a weekly video call about month-end close, cash flow and budgets.",open:"Okay, let's role-play! I'll be Mark, a CFO at a partner company. Morning! Can you give me a quick update on how the month is closing on your side?"},
+  proveedor:{label:"Negociación",mode:"Role-play: you play Jessica, a sales rep at a US supplier of commercial refrigeration equipment and compressors, negotiating price, lead times and payment terms. Friendly, but you push back on discounts.",open:"Let's practice a negotiation! I'm Jessica, your compressor supplier. Thanks for jumping on the call! What volumes are you looking at for next quarter?"},
+  banco:{label:"Banco",mode:"Role-play: you play Daniel, a relationship manager at an international bank, discussing a credit line, FX needs and interest rates.",open:"Role-play time! I'm Daniel from the bank. Good afternoon! I hear you're interested in expanding your credit line. What's driving that?"},
+  entrevista:{label:"Entrevista",mode:"Role-play: you play Laura, a hiring manager interviewing the learner for a senior finance leadership role; ask follow-up questions about real experience.",open:"Let's do a job interview. I'm Laura, the hiring manager. Thanks for coming in! Tell me a little about yourself and what you're doing now."},
+  viaje:{label:"Viaje",mode:"Role-play: you play Tyler, an upbeat hotel front-desk agent in Miami handling check-in, room issues and local tips.",open:"Let's pretend you just arrived in Miami. I'm Tyler at the front desk. Welcome to the Bayfront! Can I get the name on the reservation?"},
+  restaurante:{label:"Restaurante",mode:"Role-play: you play Mia, a friendly waitress at a busy steakhouse in Chicago who makes recommendations and small talk.",open:"You're at a steakhouse in Chicago, and I'm Mia, your server. Hi there, welcome in! Can I start you off with something to drink?"},
+};
+const LEVELS={A2:["A2","básico","Use very simple words and short sentences."],B1:["B1","intermedio","Use everyday vocabulary and clear sentences, with a few common idioms."],B2:["B2","interm. alto","Speak naturally with idioms and phrasal verbs."],C1:["C1","avanzado","Speak like a native professional: idioms, nuance, advanced vocabulary."]};
+const RATES=[["0.75","Lenta"],["0.9","Normal"],["1.05","Rápida"]];
+const DECKS={
+  sonidos:{label:"Sonidos difíciles",items:[
+    ["I live here, but I'm leaving soon.","live / leave: la i corta vs. la i larga"],
+    ["Can you ship the sheep by Friday?","ship / sheep: i corta vs. i larga"],
+    ["I think three things are wrong.","th: saca un poco la lengua entre los dientes"],
+    ["This is the thirtieth invoice this month.","th + la terminación -tieth"],
+    ["We worked late and finished the report.","-ed: worked suena 'workt', finished 'finisht'"],
+    ["The very best vendors deliver on time.","v: los dientes de arriba tocan el labio de abajo"],
+    ["I usually eat vegetables at lunch.","vegetables: 'VECH-ta-bols', 3 sílabas"],
+    ["It's a comfortable chair, isn't it?","comfortable: 'KUMF-ter-bol'"],
+    ["She works in a world-class company.","world / work: la r y la l al final"],
+    ["Please focus on the full list.","full / fool: u corta vs. u larga"],
+    ["The beach is busy in summer.","beach: i larga; busy: 'BI-zi'"],
+    ["I need a bigger budget this year.","year: suena 'yir', no 'ier'"],
+  ]},
+  negocios:{label:"Negocios y finanzas",items:[
+    ["Our cash flow improved significantly this quarter.","cash flow, significantly: acentos"],
+    ["We need to reconcile the accounts before the close.","reconcile: 'REK-on-sail'"],
+    ["The invoice is due at the end of the month.","invoice: 'IN-vois'; due: 'du'"],
+    ["Could you send me the purchase order, please?","purchase: 'PER-chis'"],
+    ["The exchange rate hurt our margins.","exchange rate; margins: 'MAR-yins'"],
+    ["Let's schedule a follow-up meeting for Thursday.","schedule: 'SKE-yul'; Thursday: th"],
+    ["Our revenue grew eight percent year over year.","revenue: 'REV-e-niu'"],
+    ["We're renegotiating the payment terms with the supplier.","supplier: 'su-PLAI-er'"],
+    ["The audit went smoothly, with no major findings.","audit: 'O-dit'; smoothly: th suave"],
+    ["What's the lead time on the new compressors?","lead time: 'lid'; compressors"],
+  ]},
+  mias:{label:"Mis palabras",items:[]},
+  nuevas:{label:"✨ Nuevas con Nelgi",items:[]},
+};
+
+/* ================= STATE / STORAGE ================= */
+const $=s=>document.querySelector(s);
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+const STORE_KEY="nelgi.v1";
+const DEF={key:"",models:[],model:"auto",level:"B1",rate:0.9,voice:"",readFix:true,autoSend:true,handsFree:false,topic:"libre",words:[],days:{},sessions:[]};
+let S=Object.assign({},DEF);
+try{Object.assign(S,JSON.parse(localStorage.getItem(STORE_KEY)||"{}"))}catch(e){}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}}
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function day(){const k=today();if(!S.days[k])S.days[k]={sent:0,ok:0,xp:0,secs:0,drills:0};return S.days[k]}
+if(!TOPICS[S.topic])S.topic="libre";
+
+/* ================= GEMINI ================= */
+const API="https://generativelanguage.googleapis.com/v1beta";
+const FALLBACK=["gemini-3.5-flash","gemini-3.5-flash-lite","gemini-3.6-flash","gemini-3.1-flash-lite","gemini-2.5-flash"];
+class GErr extends Error{constructor(kind,msg){super(msg);this.kind=kind}}
+async function listModels(key){
+  const r=await fetch(API+"/models?pageSize=200",{headers:{"x-goog-api-key":key}});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){const m=(j.error&&j.error.message)||("HTTP "+r.status);throw new GErr(/api key|API_KEY|permission|invalid/i.test(m)||r.status===400||r.status===403?"key":"net",m)}
+  const bad=/image|tts|live|audio|embedding|thinking|exp|native|robotics|computer|vision|learnlm|gemma|aqa|veo|imagen/i;
+  const ver=n=>{const m=n.match(/gemini-(\d+)(?:\.(\d+))?/);return m?(+m[1])*100+(+(m[2]||0)):0};
+  const names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""))
+    .filter(n=>/^gemini-[\d.]+-flash/.test(n)&&!bad.test(n));
+  const score=n=>(/preview/.test(n)?-50:0)+(/lite/.test(n)?-5:0)+(/latest/.test(n)?-60:0)+(/-\d{3}$|-\d{2}-\d{4}/.test(n)?-40:0)+ver(n)/10;
+  const sorted=[...new Set(names)].sort((a,b)=>score(b)-score(a));
+  return sorted.length?sorted:FALLBACK;
+}
+function modelOrder(){
+  const list=(S.models&&S.models.length?S.models:FALLBACK).slice();
+  if(S.model&&S.model!=="auto"){return [S.model,...list.filter(m=>m!==S.model)]}
+  if(S.lastGood&&list.includes(S.lastGood))return [S.lastGood,...list.filter(m=>m!==S.lastGood)];
+  return list;
+}
+async function gemini(system,contents,{json=true,temperature=0.8,signal}={}){
+  if(!S.key)throw new GErr("key","Falta la clave de Gemini");
+  const body={systemInstruction:{parts:[{text:system}]},contents,generationConfig:{temperature,maxOutputTokens:1200}};
+  if(json)body.generationConfig.responseMimeType="application/json";
+  let lastErr=null;
+  for(const model of modelOrder().slice(0,4)){
+    let r;
+    try{r=await fetch(`${API}/models/${model}:generateContent`,{method:"POST",signal,headers:{"Content-Type":"application/json","x-goog-api-key":S.key},body:JSON.stringify(body)})}
+    catch(e){if(e.name==="AbortError")throw e;lastErr=new GErr("net","Sin conexión a internet");continue}
+    const j=await r.json().catch(()=>({}));
+    if(r.ok){
+      const c=j.candidates&&j.candidates[0];
+      const text=c&&c.content&&c.content.parts?c.content.parts.filter(p=>!p.thought).map(p=>p.text||"").join(""):"";
+      if(!text){lastErr=new GErr("empty","Respuesta vacía");continue}
+      if(S.lastGood!==model){S.lastGood=model;save()}
+      if(!json)return text;
+      try{return JSON.parse(text)}catch(e){const m=text.match(/[\[{][\s\S]*[\]}]/);if(m){try{return JSON.parse(m[0])}catch(e2){}}lastErr=new GErr("json","Respuesta incompleta");continue}
+    }
+    const msg=(j.error&&j.error.message)||("HTTP "+r.status);
+    if(r.status===400&&/api key|API_KEY/i.test(msg))throw new GErr("key",msg);
+    if(r.status===403)throw new GErr("key",msg);
+    if(r.status===429){lastErr=new GErr("quota",msg);continue}
+    lastErr=new GErr("model",msg);continue;
+  }
+  throw lastErr||new GErr("net","Error desconocido");
+}
+function errCopy(e){
+  if(!e)return"Algo falló. Intenta de nuevo.";
+  switch(e.kind){
+    case"key":return"Tu clave de Gemini no funciona. Ve a ⚙️ Ajustes → Cambiar clave.";
+    case"quota":return"Llegaste al límite gratis de Gemini por ahora. Espera un minuto; si pasa seguido, prueba otro modelo en ⚙️ Ajustes.";
+    case"net":return"No hay conexión a internet. Revisa tu señal e intenta de nuevo.";
+    default:return"Nelgi no pudo responder esta vez. Envía tu mensaje otra vez.";
+  }
+}
+
+/* ================= VOICE OUT (TTS) ================= */
+const synth=("speechSynthesis" in window)?window.speechSynthesis:null;
+let voices=[];
+function loadVoices(){try{voices=synth?synth.getVoices().filter(v=>/^en[-_]/i.test(v.lang)):[]}catch(e){voices=[]}if(!$("#sheet").hidden)fillVoiceSel()}
+if(synth){loadVoices();try{synth.addEventListener("voiceschanged",loadVoices)}catch(e){synth.onvoiceschanged=loadVoices}}
+function bestVoice(){
+  if(S.voice){const v=voices.find(v=>v.name===S.voice);if(v)return v}
+  const us=voices.filter(v=>/en[-_]US/i.test(v.lang)),pool=us.length?us:voices;
+  return pool.find(v=>/natural|neural|premium|enhanced/i.test(v.name))||pool.find(v=>/google/i.test(v.name))||pool.find(v=>/samantha|jenny|aria|ava|allison/i.test(v.name))||pool[0]||null;
+}
+let speakTok=0,ttsOk=null;
+function speak(text,{onWord,onEnd,slow}={}){
+  const tok=++speakTok;
+  if(!synth||!text){onEnd&&onEnd();if(!synth)warn("talk","<b>Este navegador no tiene voz.</b> Abre Nelgi en Google Chrome.");return}
+  stopListening();
+  try{synth.cancel()}catch(e){}
+  const words=[...text.matchAll(/\S+/g)].map(m=>m.index);
+  const u=new SpeechSynthesisUtterance(text),v=bestVoice();
+  if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+  u.rate=slow?Math.max(.55,S.rate-.3):S.rate;u.pitch=1.02;u.volume=1;
+  let gotB=false,fb=null,wi=-1,began=false;
+  const fire=i=>{if(tok!==speakTok||i<=wi)return;wi=i;onWord&&onWord(i);orb.kick=1};
+  u.onboundary=e=>{if(e.name&&e.name!=="word")return;gotB=true;clearInterval(fb);let i=0;while(i+1<words.length&&words[i+1]<=e.charIndex)i++;fire(i)};
+  u.onstart=()=>{began=true;ttsOk=true;hideWarn("talk");setOrb("speaking");setTimeout(()=>{if(!gotB&&tok===speakTok){let i=0;fb=setInterval(()=>{if(i>=words.length){clearInterval(fb);return}fire(i++)},60000/(165*u.rate))}},450)};
+  const done=()=>{clearInterval(fb);if(tok!==speakTok)return;speakTok++;onWord&&onWord(words.length);onEnd&&onEnd()};
+  u.onend=done;u.onerror=e=>{if(!began&&e&&e.error!=="interrupted"&&e.error!=="canceled")ttsWarn();done()};
+  try{synth.resume&&synth.resume();synth.speak(u)}catch(e){ttsWarn();done()}
+  setTimeout(()=>{if(tok===speakTok&&!began&&ttsOk!==true){ttsWarn();done()}},4000);
+}
+function hush(){speakTok++;try{synth&&synth.cancel()}catch(e){}}
+function ttsWarn(){if(ttsOk===true)return;warn("talk","<b>No se escucha la voz.</b> Quita el modo silencio y sube el volumen de multimedia. Si sigue igual, en Android ve a Ajustes → Idioma → Salida de texto a voz y elige “Speech Services by Google”.")}
+
+/* ================= VOICE IN (speech recognition) ================= */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,recActive=false;
+function listen({onInterim,onFinal,onEnd,onError}={}){
+  if(!SR){onError&&onError("unsupported");return}
+  hush();stopListening();
+  const r=new SR();rec=r;r.lang="en-US";r.interimResults=true;r.maxAlternatives=4;r.continuous=false;
+  let finalAlts=null,finalText="";
+  r.onstart=()=>{recActive=true};
+  r.onspeechstart=()=>{orb.kick=1};
+  r.onresult=e=>{
+    let interim="";finalText="";
+    for(let i=0;i<e.results.length;i++){const res=e.results[i];
+      if(res.isFinal){finalText+=res[0].transcript;finalAlts=[...res].map(a=>({t:a.transcript.trim(),c:a.confidence}))}
+      else interim+=res[0].transcript}
+    orb.kick=Math.min(1,orb.kick+.5);
+    onInterim&&onInterim((finalText+" "+interim).trim());
+  };
+  r.onerror=e=>{recActive=false;onError&&onError(e.error)};
+  r.onend=()=>{recActive=false;if(rec===r)rec=null;const t=finalText.trim();if(t)onFinal&&onFinal(t,finalAlts||[{t,c:0}]);onEnd&&onEnd(!!t)};
+  try{r.start()}catch(e){recActive=false;onError&&onError("start")}
+  return r;
+}
+function stopListening(){if(rec){try{rec.stop()}catch(e){}}}
+function abortListening(){if(rec){const r=rec;rec=null;r.onend=null;r.onresult=null;try{r.abort()}catch(e){}recActive=false}}
+function micErr(code){
+  switch(code){
+    case"not-allowed":case"service-not-allowed":return"<b>No hay permiso para el micrófono.</b> Toca el candado junto a la dirección de la página → Permisos → Micrófono → Permitir.";
+    case"unsupported":return"<b>Este navegador no reconoce voz.</b> Abre Nelgi en Google Chrome. Mientras tanto puedes escribir.";
+    case"network":return"<b>El reconocimiento de voz necesita internet.</b> Revisa tu conexión.";
+    case"audio-capture":return"<b>No se encontró micrófono.</b> Revisa que ninguna otra app lo esté usando.";
+    default:return"";
+  }
+}
+
+/* ================= ORB ================= */
+const orb={state:"idle",energy:.15,target:.15,kick:0,spin:0};
+const cv=$("#orb"),cx=cv.getContext("2d");
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const STATE_TXT={idle:"En línea",listening:"Te escucho… habla",thinking:"Pensando…",speaking:"Hablando"};
+function setOrb(s){orb.state=s;orb.target={idle:.12,listening:.35,thinking:.22,speaking:.45}[s];const st=$("#state");st.textContent=STATE_TXT[s]||"";st.classList.toggle("rec",s==="listening")}
+const C=[111,227,210],rgba=a=>`rgba(${C[0]},${C[1]},${C[2]},${a})`;
+function drawOrb(t){
+  const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);
+  orb.energy+=(orb.target+orb.kick*.5-orb.energy)*.08;orb.kick*=.9;orb.spin+=orb.state==="thinking"?.035:.006;
+  const R=W*.27,col=orb.state==="listening"?[255,120,120]:C,rg=a=>`rgba(${col[0]},${col[1]},${col[2]},${a})`;
+  for(let L=3;L>=0;L--){
+    const amp=R*(.05+orb.energy*.22)*(1+L*.35),rr=R*(1+L*.16);cx.beginPath();
+    for(let a=0;a<=Math.PI*2+.01;a+=Math.PI/90){const n=Math.sin(a*3+t*.0013*(1+L*.3)+orb.spin*(L+1))*.55+Math.sin(a*5-t*.0021+L)*.3+Math.sin(a*2+t*.0009)*.15;const r=rr+n*amp;const x=W/2+Math.cos(a)*r,y=H/2+Math.sin(a)*r;a===0?cx.moveTo(x,y):cx.lineTo(x,y)}
+    cx.closePath();
+    if(L===0){const g=cx.createRadialGradient(W*.42,H*.38,R*.1,W/2,H/2,R*1.2);g.addColorStop(0,"#fff");g.addColorStop(.25,rgba(1));g.addColorStop(1,rgba(.85));cx.fillStyle=g}
+    else cx.fillStyle=rg(.13/L+orb.energy*.06);
+    cx.fill();
+  }
+  if(orb.state==="thinking")for(let i=0;i<3;i++){const a=orb.spin*3+i*2.094,r=R*1.55;cx.beginPath();cx.arc(W/2+Math.cos(a)*r,H/2+Math.sin(a)*r,W*.018,0,7);cx.fillStyle=rgba(.9);cx.fill()}
+  requestAnimationFrame(drawOrb);
+}
+if(reduce){cx.beginPath();cx.arc(160,160,86,0,7);cx.fillStyle=rgba(1);cx.fill()}else requestAnimationFrame(drawOrb);
+
+/* ================= helpers ================= */
+const tk=s=>s.trim().split(/\s+/).filter(Boolean);
+const norm=s=>s.toLowerCase().replace(/[’‘]/g,"'").replace(/[^\w' ]/g," ").replace(/\s+/g," ").trim();
+const same=(a,b)=>norm(a)===norm(b);
+function lcsOps(A,B,eq){const n=A.length,m=B.length,dp=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=eq(A[i],B[j])?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  const o=[];let i=0,j=0;while(i<n&&j<m){if(eq(A[i],B[j])){o.push(["=",A[i],B[j]]);i++;j++}else if(dp[i+1][j]>=dp[i][j+1])o.push(["-",A[i++],null]);else o.push(["+",null,B[j++]])}
+  while(i<n)o.push(["-",A[i++],null]);while(j<m)o.push(["+",null,B[j++]]);return o}
+function renderDiff(a,b){const d=el("div","diff");lcsOps(tk(a),tk(b),same).forEach(([op,x,y],k)=>{if(k)d.append(" ");if(op==="=")d.append(y);else d.append(el(op==="-"?"del":"ins",null,op==="-"?x:y))});return d}
+function warn(where,html){const w=$(where==="talk"?"#talkWarn":"#drillWarn");if(!w)return;w.innerHTML=html;w.hidden=!html}
+function hideWarn(where){const w=$(where==="talk"?"#talkWarn":"#drillWarn");if(w)w.hidden=true}
+function setStat(id,v){const s=$(id);s.querySelector("b").textContent=v;s.classList.remove("bump");void s.offsetWidth;s.classList.add("bump")}
+let popT=null;
+function popup(kind,text){const p=$("#pop");p.className="pop "+kind;p.textContent=text;void p.offsetWidth;p.classList.add("show");clearTimeout(popT);popT=setTimeout(()=>p.classList.remove("show"),2200)}
+function addXp(n){day().xp+=n;save();setStat("#sXp",day().xp)}
+function saveWord(w,es,src){w=w.trim();if(!w)return false;const f=S.words.find(x=>x.w.toLowerCase()===w.toLowerCase());if(f){if(es&&!f.es)f.es=es;save();return false}S.words.unshift({w,es:es||"",src:src||"",t:Date.now(),hits:0});save();return true}
+
+/* ================= CAPTION ================= */
+const cap=$("#caption");
+function captionStream(text,cls){cap.className="caption"+(cls?" "+cls:"");cap.textContent=text}
+function captionWords(text,done){cap.className="caption"+(done?" done":"");cap.innerHTML="";let i=0;for(const p of text.split(/(\s+)/)){if(!p)continue;if(/^\s+$/.test(p)){cap.append(p);continue}const s=el("span","w",p);s.dataset.i=i++;s.onclick=ev=>{ev.stopPropagation();gloss(s,text)};cap.append(s)}}
+function captionAt(i){cap.querySelectorAll(".w").forEach(w=>{const k=+w.dataset.i;w.classList.toggle("said",k<i);w.classList.toggle("now",k===i)});const n=cap.querySelector(".now");if(n)n.scrollIntoView({block:"nearest"})}
+function captionDone(){cap.querySelectorAll(".now").forEach(w=>w.classList.remove("now"));cap.classList.add("done")}
+let lastSpoken="";
+function say(text,opts={}){lastSpoken=text;captionWords(text,false);$("#voicebar").hidden=false;
+  speak(text,{slow:opts.slow,onWord:captionAt,onEnd:()=>{captionDone();setOrb("idle");opts.after&&opts.after()}})}
+
+let glossEl=null;
+function closeGloss(){if(glossEl){glossEl.remove();glossEl=null}}
+async function gloss(span,sentence){
+  closeGloss();const word=span.textContent.replace(/^[^\w']+|[^\w']+$/g,"");if(!word)return;
+  speak(word,{slow:true});
+  const g=el("div","gloss");glossEl=g;const head=el("div");head.append(el("b",null,word+" "),el("span",null,"…"));g.append(head);
+  const acts=el("div","hear");const sv=el("button",null,"⭐ Guardar");sv.type="button";const pl=el("button",null,"🐢 Oír");pl.type="button";pl.onclick=()=>speak(word,{slow:true});acts.append(pl,sv);g.append(acts);
+  $("#stage").append(g);
+  let es="";sv.onclick=()=>{sv.textContent=saveWord(word,es,"traducción")?"✓ Guardada":"✓ Ya estaba";sv.disabled=true};
+  try{const r=await gemini("You translate English words for a Spanish-speaking learner. Reply only JSON.",[{role:"user",parts:[{text:`Word: "${word}". Sentence: "${sentence}". Reply JSON: {"es":"Spanish translation in this context (1-4 words)","ipa":"IPA","note":"very short usage note in Spanish (max 12 words) or empty"}`}]}],{temperature:.2});
+    if(glossEl!==g)return;es=r.es||"";head.lastChild.textContent=`${r.ipa?r.ipa+" ":""}— ${es}`;if(r.note)head.after(el("i",null,r.note));
+  }catch(e){if(glossEl===g)head.lastChild.textContent="— sin conexión"}
+}
+document.addEventListener("click",e=>{if(glossEl&&!e.target.closest(".gloss"))closeGloss()});
+
+/* ================= CONVERSATION ================= */
+const txIn=$("#txIn"),tx=$("#tx");
+let turns=[],history=[],busy=false,ctl=null,t0=0,timer=null,started=false,streak=0,best=0;
+function down(){requestAnimationFrame(()=>tx.scrollTop=tx.scrollHeight)}
+function addT(text){const m=el("div","m t"),b=el("div","b",text),p=el("button","play","▶ Escuchar");p.type="button";p.onclick=()=>say(text);b.append(" ",p);m.append(b);txIn.append(m);down()}
+function addU(text,voice){const m=el("div","m u");m.append(el("div","b",text));if(voice)m.append(el("span","via","🎙️ dicho en voz alta"));txIn.append(m);down()}
+function addSys(text){txIn.append(el("div","sys",text));down()}
+
+function systemPrompt(){
+  const L=LEVELS[S.level];
+  return `You are Nelgi, a warm, witty, very knowledgeable English coach in a speaking-practice app. You know English deeply (grammar, idioms, pronunciation, business English) and can talk about any topic. The learner is a Spanish-speaking finance manager from Costa Rica.
+CURRENT MODE: ${TOPICS[S.topic].mode}
+Learner level ${L[0]}: ${L[2]}
+If the learner asks something about English in any mode, answer briefly, then continue.
+
+Each learner message is marked [VOICE] (it came from a speech recognizer, with alternatives and confidence) or [TYPED].
+
+Return ONLY a JSON object:
+{
+ "reply": "your answer, spoken out loud: natural spoken English, contractions, short reactions, 1-3 short sentences, usually ending with a question. React to what they meant. No emojis, lists or markdown. Never mention their mistakes here.",
+ "ok": true if the message has no real language errors, else false,
+ "corrected": "their message with MINIMAL fixes (grammar, tense, prepositions, word choice, false friends like actually/actualmente, assist/asistir). Identical if ok. Never change capitalization or punctuation alone: those never count as errors.",
+ "notes": ["up to 3 short explanations in Spanish (under 18 words each) of the fixes; if ok, one short Spanish compliment or tip, or empty"],
+ "natural": "how a native speaker would naturally say the same idea, or empty string if already natural",
+ "pron": [ only for [VOICE] messages: words the learner most likely MISPRONOUNCED, deduced from the recognizer output: a word that makes no sense in context but sounds like the intended word (e.g. heard "sheet" when "shit"? no: heard "live" when they meant "leave"), disagreement between alternatives, or low confidence. Each item: {"heard":"what the recognizer wrote","word":"the intended word","ipa":"IPA of the intended word","tip":"one practical tip in Spanish on how to pronounce it, under 20 words"}. Max 3 items. Empty array if nothing points to a pronunciation problem. Do not flag words just because they are hard. ]
+}
+For [VOICE] messages, first infer what the learner meant to say (fix recognizer mishearings), then judge grammar on that intended sentence; a misheard word is a pronunciation issue, not a grammar error.`;
+}
+function buildContents(){
+  const out=[];
+  for(const t of turns.slice(-24)){const role=t.role==="user"?"user":"model";if(out.length&&out[out.length-1].role===role)out[out.length-1].parts[0].text+="\n"+t.text;else out.push({role,parts:[{text:t.text}]})}
+  if(out.length&&out[0].role!=="user")out.unshift({role:"user",parts:[{text:"(Session starts. Greet me.)"}]});
+  return out;
+}
+function renderTopics(){const w=$("#topics");w.innerHTML="";Object.entries(TOPICS).forEach(([k,t])=>{const b=el("button","topic",t.label);b.type="button";b.setAttribute("aria-pressed",String(k===S.topic));b.onclick=()=>switchTopic(k);w.append(b)})}
+function switchTopic(k){
+  if(ctl)ctl.abort();abortListening();S.topic=k;save();renderTopics();$("#ideas").innerHTML="";
+  const o=TOPICS[k].open;if(!started){captionWords(o,true);return}
+  addSys("Tema: "+TOPICS[k].label);turns.push({role:"model",text:o});addT(o);say(o,{after:autoListen});
+}
+function begin(){
+  if(started)return;started=true;$("#startBtn").hidden=true;
+  t0=Date.now();clearInterval(timer);timer=setInterval(tick,1000);tick();
+  const o=TOPICS[S.topic].open;turns.push({role:"model",text:o});addT(o);say(o,{after:autoListen});
+}
+function tick(){const s=Math.floor((Date.now()-t0)/1000);$("#clock").textContent="En sesión · "+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function autoListen(){if(S.handsFree&&started&&!busy&&curTab==="talk"&&$("#summary").hidden)setTimeout(()=>{if(!busy&&!recActive)startTalkMic()},250)}
+
+/* mic in conversation */
+const micBtn=$("#micBtn"),boxEl=$("#box");
+function setMicUi(on){micBtn.classList.toggle("on",on);micBtn.setAttribute("aria-label",on?"Detener":"Hablar")}
+function startTalkMic(){
+  if(!started)begin();
+  closeGloss();hush();setMicUi(true);setOrb("listening");captionStream("…","interim");
+  listen({
+    onInterim:t=>{captionStream(t||"…","interim");boxEl.value=t;grow()},
+    onFinal:(t,alts)=>{boxEl.value="";grow();if(S.autoSend)send(t,alts);else{boxEl.value=t;grow();boxEl.focus()}},
+    onEnd:got=>{setMicUi(false);if(!got&&!busy){setOrb("idle");captionWords(lastSpoken||TOPICS[S.topic].open,true)}},
+    onError:code=>{setMicUi(false);setOrb("idle");const m=micErr(code);if(m)warn("talk",m)}
+  });
+}
+micBtn.onclick=()=>{if(recActive){stopListening();return}startTalkMic()};
+
+async function send(text,alts){
+  text=(text||"").trim();if(busy||!text)return;
+  if(!started)begin();
+  busy=true;$("#send").disabled=true;micBtn.disabled=true;$("#ideas").innerHTML="";closeGloss();hush();hideWarn("talk");
+  const voice=!!alts;addU(text,voice);
+  const tag=voice?`[VOICE] top: "${text}"${alts[0]&&alts[0].c?` (confidence ${alts[0].c.toFixed(2)})`:""}${alts.length>1?` | alternatives: ${alts.slice(1).map(a=>`"${a.t}"`).join(", ")}`:""}`:`[TYPED] ${text}`;
+  turns.push({role:"user",text:tag});
+  setOrb("thinking");$("#voicebar").hidden=true;cap.className="caption";cap.innerHTML="";cap.append(el("span","cursor"));
+  ctl=new AbortController();
+  try{
+    const r=await gemini(systemPrompt(),buildContents(),{signal:ctl.signal});
+    const reply=String(r.reply||"").replace(/[*_#]/g,"").trim();
+    const res={ok:!!r.ok,corrected:String(r.corrected||text),notes:Array.isArray(r.notes)?r.notes:[],natural:String(r.natural||""),pron:Array.isArray(r.pron)?r.pron:[]};
+    const hasErr=addFix(text,res,voice);
+    history.push({you:text,corrected:res.corrected,natural:res.natural,ok:!hasErr,pron:res.pron.map(p=>p.word)});
+    const d=day();d.sent++;if(!hasErr)d.ok++;save();
+    if(reply){turns.push({role:"model",text:reply});addT(reply);
+      if(hasErr&&S.readFix)say(res.corrected,{after:()=>setTimeout(()=>say(reply,{after:autoListen}),350)});
+      else say(reply,{after:autoListen});
+    }else setOrb("idle");
+  }catch(e){
+    turns.pop();setOrb("idle");captionWords(lastSpoken||"",true);
+    if(e.name!=="AbortError")addSys(errCopy(e));
+  }finally{busy=false;$("#send").disabled=false;micBtn.disabled=false}
+}
+
+function addFix(orig,r,voice){
+  const hasErr=!r.ok&&r.corrected&&!same(r.corrected,orig);
+  const f=el("div","fx"+(hasErr?"":" ok"));
+  const notes=r.notes.filter(Boolean).map(String);
+  f.append(el("div","mono",hasErr?`Corrección · ${notes.length||1} ${notes.length>1?"ajustes":"ajuste"}`:"✓ Bien dicho"));
+  if(hasErr)f.append(renderDiff(orig,r.corrected));
+  if(notes.length){const ul=el("ul");notes.forEach(n=>ul.append(el("li",null,n)));f.append(ul)}
+  const nat=r.natural&&!same(r.natural,r.corrected||orig)?r.natural:"";
+  if(nat){const p=el("div","nat");p.append("Un nativo diría: ",el("span",null,"“"+nat+"”"));f.append(p)}
+  const h=el("div","hear");const mk=(label,fn)=>{const b=el("button",null,label);b.type="button";b.onclick=fn;h.append(b)};
+  if(hasErr){mk("▶ Correcta",()=>say(r.corrected));mk("🐢 Lento",()=>say(r.corrected,{slow:true}))}
+  if(nat){mk("▶ Nativo",()=>say(nat));}
+  const target=nat||(hasErr?r.corrected:"");
+  if(target&&SR)mk("🎙️ Repetirla",()=>{S._drillCustom=[[target,"Frase de tu conversación"]];openDrill("custom")});
+  if(h.children.length)f.append(h);
+  const pr=(r.pron||[]).filter(p=>p&&p.word).slice(0,3);
+  if(voice&&pr.length){
+    const box=el("div","pron");box.append(el("div","mono","🎙️ Pronunciación"));
+    pr.forEach(p=>{saveWord(p.word,"","pronunciación");box.append(pronItem(p))});
+    f.append(box);
+  }
+  txIn.append(f);down();
+  if(hasErr){streak=0;addXp(5);popup("fix","✏️ "+(notes.length>1?notes.length+" correcciones":"1 corrección"))}
+  else{streak++;best=Math.max(best,streak);addXp(nat?10:15);popup("good",pr.length&&voice?"🎙️ Revisa la pronunciación":streak>=3?`🔥 ¡${streak} seguidas!`:"✓ ¡Perfecto!")}
+  setStat("#sStreak",streak);
+  return hasErr;
+}
+function pronItem(p){
+  const w=el("div","pw");const top=el("div","top");top.append(el("b",null,p.word));if(p.heard&&!same(p.heard,p.word))top.append(el("s",null,"se entendió “"+p.heard+"”"));if(p.ipa)top.append(el("span","ipa",p.ipa));w.append(top);
+  if(p.tip)w.append(el("div","tip",p.tip));
+  const h=el("div","hear"),res=el("div","res");
+  const b1=el("button",null,"🐢 Escuchar");b1.type="button";b1.onclick=()=>speak(p.word,{slow:true});h.append(b1);
+  if(SR){const b2=el("button",null,"🎙️ Repetir");b2.type="button";b2.onclick=()=>tryWord(p.word,res,b2);h.append(b2)}
+  w.append(h,res);return w;
+}
+function tryWord(word,res,btn){
+  btn.textContent="● Escuchando…";res.textContent="";
+  listen({onInterim:t=>{res.textContent=t},onFinal:(t,alts)=>{
+      const hit=alts.some(a=>norm(a.t).split(" ").includes(norm(word)));
+      res.innerHTML="";res.append(hit?el("span",null,"✅ ¡Se entendió “"+word+"”!"):el("span",null,"Se entendió “"+t+"”. Escúchala otra vez y repite."));
+      res.style.color=hit?"var(--good)":"var(--gold)";if(hit){addXp(5);const f=S.words.find(x=>x.w.toLowerCase()===word.toLowerCase());if(f){f.hits++;save()}}},
+    onEnd:()=>{btn.textContent="🎙️ Repetir"},onError:c=>{btn.textContent="🎙️ Repetir";res.innerHTML=micErr(c)||"No te escuché. Intenta otra vez."}});
+}
+
+async function hints(){
+  if(busy)return;if(!started)begin();
+  const last=[...turns].reverse().find(x=>x.role==="model");const q=last?last.text:TOPICS[S.topic].open;
+  const box=$("#ideas");box.innerHTML="";const l=el("span","loading");l.innerHTML='<span class="dots"><span></span><span></span><span></span></span>';box.append(l);
+  try{const arr=await gemini("You help an English learner reply in a conversation. Reply only JSON.",[{role:"user",parts:[{text:`Context: ${TOPICS[S.topic].label}. The coach just said: "${q}". Give 3 natural replies a ${S.level}-level learner could say, different in style, each under 18 words. JSON: {"ideas":["...","...","..."]}`}]}],{temperature:1});
+    box.innerHTML="";(r=>Array.isArray(r)?r:(r.ideas||[]))(arr).slice(0,3).forEach(s=>{const b=el("button","idea",String(s));b.type="button";b.onclick=()=>{say(String(s),{slow:false});boxEl.value=String(s);grow();box.innerHTML=""};box.append(b)});
+  }catch(e){box.innerHTML="";addSys(errCopy(e))}
+}
+
+/* ================= SUMMARY ================= */
+async function endSession(){
+  if(ctl)ctl.abort();abortListening();hush();clearInterval(timer);
+  const secs=started?Math.floor((Date.now()-t0)/1000):0;if(started){day().secs+=secs;save()}
+  const good=history.filter(h=>h.ok).length,n=history.length;
+  const O=$("#summary");O.hidden=false;const W=$("#sumIn");W.innerHTML="";
+  const top=el("div","sum-top"),ring=el("div","ring");
+  ring.innerHTML=`<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="#24404A" stroke-width="10"/><circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="#6FE3D2" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset 1.2s ease-out"/></svg><div class="n"><div><span id="score">–</span><small>DE 10</small></div></div>`;
+  const h=el("div");h.append(el("h2",null,"Tu sesión con Nelgi"),el("p",null,`${TOPICS[S.topic].label} · nivel ${S.level}`));top.append(ring,h);W.append(top);
+  const k=el("div","kpis");[[`${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")}`,"duración"],[n,"frases tuyas"],[n?Math.round(good/n*100)+"%":"–","sin errores"],[best,"mejor racha"]].forEach(([a,b])=>{const d=el("div","kpi");d.append(el("b",null,String(a)),el("span",null,b));k.append(d)});W.append(k);
+  const body=el("div");body.style.cssText="display:flex;flex-direction:column;gap:18px";W.append(body);
+  const cta=el("div","rowbtns"),again=el("button","btn main","Seguir practicando");again.type="button";
+  again.onclick=()=>{O.hidden=true;if(started){t0=Date.now()-secs*1000;day().secs-=secs;save();timer=setInterval(tick,1000)}};
+  const fresh=el("button","btn","Nueva sesión");fresh.type="button";fresh.onclick=()=>{O.hidden=true;turns=[];history=[];streak=0;best=0;setStat("#sStreak",0);txIn.innerHTML="";started=false;begin()};
+  cta.append(again,fresh);W.append(cta);
+  if(!n){body.append(el("p",null,"Todavía no hay frases tuyas en esta sesión. Conversa un poco con Nelgi y vuelve para ver tu evaluación."));return}
+  const l=el("div","loading");l.innerHTML='<span class="dots"><span></span><span></span><span></span></span> Nelgi está preparando tu evaluación…';body.append(l);
+  const lines=history.slice(-30).map((x,i)=>`${i+1}. Learner: ${x.you}\n   Corrected: ${x.corrected}${x.natural?`\n   Natural: ${x.natural}`:""}${x.pron.length?`\n   Pronunciation issues: ${x.pron.join(", ")}`:""}`).join("\n");
+  try{const r=await gemini("You are Nelgi, an English coach. Reply only JSON.",[{role:"user",parts:[{text:`Evaluate this speaking-practice session of a Spanish-speaking learner (target level ${S.level}).\n\n${lines}\n\nIgnore capitalization and punctuation. JSON: {"score": integer 1-10 for accuracy, naturalness and pronunciation, "cefr":"estimated CEFR like B1+", "headline":"one encouraging sentence in Spanish", "strengths":["2-3 items in Spanish"], "focus":["2-3 recurring error patterns in Spanish, each with a mini example"], "phrases":[{"en":"useful natural phrase to practice","es":"traducción"}] (5 items)}`}]}],{temperature:.4});
+    body.innerHTML="";const sc=Math.max(0,Math.min(10,Math.round(Number(r.score)||0)));$("#score").textContent=sc;requestAnimationFrame(()=>requestAnimationFrame(()=>{$("#arc").style.strokeDashoffset=326.7*(1-sc/10)}));
+    h.querySelector("p").textContent=`${TOPICS[S.topic].label} · nivel estimado ${r.cefr||S.level}`;
+    S.sessions.unshift({d:today(),topic:TOPICS[S.topic].label,score:sc,cefr:r.cefr||"",n,ok:good,secs});S.sessions=S.sessions.slice(0,60);S.cefr=r.cefr||S.cefr;save();
+    if(r.headline)body.append(el("p",null,r.headline));
+    const sec=(t,items)=>{const d=el("div","sec");d.append(el("h3","mono",t));const ul=el("ul");(items||[]).forEach(x=>ul.append(el("li",null,String(x))));d.append(ul);return d};
+    body.append(sec("Lo que hiciste bien",r.strengths),sec("En qué enfocarte",r.focus));
+    const pd=el("div","sec");pd.append(el("h3","mono","Frases para practicar en voz alta"));const ph=el("div","phr");
+    const phrases=(r.phrases||[]).filter(x=>x&&x.en);
+    phrases.forEach(x=>{const d=el("div"),b=el("button","iconb","▶");b.type="button";b.setAttribute("aria-label","Escuchar");b.onclick=()=>speak(x.en);d.append(b,el("span",null,x.en),el("i",null,x.es||""));ph.append(d)});
+    pd.append(ph);body.append(pd);
+    if(phrases.length&&SR){const pb=el("button","btn small","🎙️ Practicar estas frases");pb.type="button";pb.onclick=()=>{S._drillCustom=phrases.map(x=>[x.en,x.es||""]);O.hidden=true;openDrill("custom")};body.append(pb)}
+  }catch(e){body.innerHTML="";body.append(el("p",null,errCopy(e)))}
+}
+
+/* ================= DRILL ================= */
+let deck="sonidos",di=0,items=[];
+function renderDecks(){const w=$("#decks");w.innerHTML="";Object.entries(DECKS).forEach(([k,d])=>{const b=el("button","deck",d.label);b.type="button";b.setAttribute("aria-pressed",String(k===deck));b.onclick=()=>openDrill(k);w.append(b)})}
+async function openDrill(k){
+  deck=k;di=0;showTab("drill");renderDecks();
+  if(k==="custom"){items=S._drillCustom||[]}
+  else if(k==="mias"){items=S.words.map(w=>[w.w,w.es?("Significa: "+w.es):"Palabra guardada"])}
+  else if(k==="nuevas"){const c=$("#drillcard");c.innerHTML="";const l=el("div","loading");l.innerHTML='<span class="dots"><span></span><span></span><span></span></span> Nelgi está creando frases para ti…';c.append(l);
+    try{const r=await gemini("You create pronunciation practice for Spanish speakers learning English. Reply only JSON.",[{role:"user",parts:[{text:`Create 8 short sentences (6-12 words) for a ${S.level} learner, mixing everyday life and business/finance, each targeting a sound that is hard for Spanish speakers (short vs long i, th, v/b, -ed endings, schwa, final consonant clusters, sh vs ch, h, j/y, z). JSON: {"items":[{"en":"sentence","focus":"tip in Spanish naming the sound and how to make it, under 16 words"}]}`}]}],{temperature:1});
+      items=(r.items||[]).filter(x=>x&&x.en).map(x=>[x.en,x.focus||""]);}catch(e){items=[];c.innerHTML="";c.append(el("p","empty",errCopy(e)));return}}
+  else items=DECKS[k].items.slice();
+  renderCard();
+}
+function renderCard(){
+  const c=$("#drillcard");c.innerHTML="";
+  if(!items.length){c.append(el("p","empty",deck==="mias"?"Aún no tienes palabras guardadas. Toca palabras en los subtítulos de Nelgi para guardarlas.":"No hay frases en esta lista."));return}
+  const [text,focus]=items[di];
+  c.append(el("div","mono count",`${di+1} / ${items.length}`));
+  const tg=el("div","target");tg.id="dTarget";tk(text).forEach((w,i)=>{if(i)tg.append(" ");tg.append(el("span",null,w))});c.append(tg);
+  if(focus){const f=el("div","focus");f.append(el("b",null,"Enfoque: "),focus);c.append(f)}
+  const btns=el("div","dbtns");
+  const b1=el("button","btn small","▶ Escuchar");b1.type="button";b1.onclick=()=>speak(text);
+  const b2=el("button","btn small","🐢 Lento");b2.type="button";b2.onclick=()=>speak(text,{slow:true});
+  const mic=el("button","mic");mic.type="button";mic.setAttribute("aria-label","Decirla");mic.innerHTML=micBtn.innerHTML;
+  btns.append(b1,mic,b2);c.append(btns);
+  const heard=el("div","heard","Toca el micrófono y di la frase.");c.append(heard);
+  const scoreRow=el("div");scoreRow.style.cssText="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%";const sc=el("div","score","");const meter=el("div","meter");meter.append(el("i"));scoreRow.append(sc,meter);scoreRow.hidden=true;c.append(scoreRow);
+  const tipbox=el("div","tipbox");tipbox.hidden=true;c.append(tipbox);
+  const why=el("button","btn small","💬 ¿Qué estoy diciendo mal?");why.type="button";why.hidden=true;c.append(why);
+  const warnb=el("div","warnbox");warnb.id="drillWarn";warnb.hidden=true;c.append(warnb);
+  const nav=el("div","nav");const pv=el("button","btn small","‹ Anterior");pv.type="button";pv.disabled=di===0;pv.onclick=()=>{di--;renderCard()};
+  const nx=el("button","btn small main","Siguiente ›");nx.type="button";nx.disabled=di>=items.length-1;nx.onclick=()=>{di++;renderCard()};nav.append(pv,nx);c.append(nav);
+  let lastHeard="",missed=[];
+  mic.onclick=()=>{
+    if(recActive){stopListening();return}
+    if(!SR){warnb.innerHTML=micErr("unsupported");warnb.hidden=false;return}
+    mic.classList.add("on");heard.textContent="Te escucho…";tipbox.hidden=true;why.hidden=true;
+    listen({onInterim:t=>{heard.textContent=t},
+      onFinal:(t,alts)=>{
+        // pick the alternative that best matches the target
+        const T=tk(text);let bestA=alts[0],bestS=-1,bestOps=null;
+        for(const a of alts){const ops=lcsOps(T,tk(a.t),same);const hit=ops.filter(o=>o[0]==="=").length;if(hit>bestS){bestS=hit;bestA=a;bestOps=ops}}
+        const okIdx=new Set();let ti=0;bestOps.forEach(o=>{if(o[0]==="="){okIdx.add(ti);ti++}else if(o[0]==="-")ti++});
+        const spans=tg.querySelectorAll("span");missed=[];spans.forEach((s,i)=>{s.className=okIdx.has(i)?"ok":"bad";if(!okIdx.has(i))missed.push(T[i])});
+        const pct=Math.round(okIdx.size/T.length*100);lastHeard=bestA.t;
+        heard.innerHTML="";heard.append("Se entendió: ",el("b",null,"“"+bestA.t+"”"));
+        scoreRow.hidden=false;sc.textContent=pct+"%";sc.style.color=pct>=90?"var(--good)":pct>=60?"var(--gold)":"var(--del)";requestAnimationFrame(()=>meter.firstChild.style.width=pct+"%");
+        meter.firstChild.style.background=sc.style.color;
+        const d=day();d.drills++;save();addXp(pct>=90?10:pct>=60?5:2);
+        if(pct>=90){popupDrill(heard);missed.length=0}
+        why.hidden=pct>=100;
+        missed.forEach(w=>saveWord(w.replace(/[^\w']/g,""),"","pronunciación"));
+      },
+      onEnd:()=>{mic.classList.remove("on");if(heard.textContent==="Te escucho…")heard.textContent="No te escuché. Toca el micrófono e intenta otra vez."},
+      onError:code=>{mic.classList.remove("on");const m=micErr(code);if(m){warnb.innerHTML=m;warnb.hidden=false}}});
+  };
+  why.onclick=async()=>{
+    why.disabled=true;tipbox.hidden=false;tipbox.innerHTML='<span class="dots"><span></span><span></span><span></span></span>';
+    try{const r=await gemini("You are Nelgi, a pronunciation coach for Spanish speakers. Reply only JSON.",[{role:"user",parts:[{text:`Target sentence: "${text}". The speech recognizer heard: "${lastHeard}". Words not recognized: ${missed.join(", ")||"none"}. Explain which sounds were likely mispronounced and how to fix them. JSON: {"tips":[{"word":"word","ipa":"IPA","tip":"practical tip in Spanish, under 25 words, e.g. compare with a Spanish sound"}]} (max 3)`}]}],{temperature:.3});
+      tipbox.innerHTML="";(r.tips||[]).forEach(t=>{const p=el("div","pw");const top=el("div","top");top.append(el("b",null,t.word||""));if(t.ipa)top.append(el("span","ipa",t.ipa));p.append(top,el("div","tip",t.tip||""));const hb=el("div","hear"),bb=el("button",null,"🐢 Escuchar");bb.type="button";bb.onclick=()=>speak(t.word||"",{slow:true});hb.append(bb);p.append(hb);tipbox.append(p)});
+      if(!tipbox.children.length)tipbox.textContent="No encontré un problema claro. Escucha la versión lenta y repite.";
+    }catch(e){tipbox.textContent=errCopy(e)}finally{why.disabled=false}
+  };
+}
+function popupDrill(anchor){anchor.append(" ",el("b",null,"🎉 ¡Excelente!"))}
+
+/* ================= WORDS ================= */
+function renderWords(){
+  const L=$("#wlist");L.innerHTML="";
+  if(!S.words.length){L.append(el("p","empty","Aún no tienes palabras. En Conversar, toca cualquier palabra de Nelgi y elige “⭐ Guardar”. Las palabras que te cuesta pronunciar se agregan solas."));return}
+  S.words.forEach((w,i)=>{
+    const it=el("div","witem");const a=el("div");a.append(el("b",null,w.w));
+    const sub=el("span",null,[w.es,w.src==="pronunciación"?"🎙️ practicar pronunciación":"",w.hits?`✓ ${w.hits} veces bien`:""].filter(Boolean).join(" · ")||"—");
+    const acts=el("div","acts");
+    const p=el("button","iconb","▶");p.type="button";p.setAttribute("aria-label","Escuchar");p.onclick=()=>speak(w.w,{slow:true});
+    const d=el("button","iconb","✕");d.type="button";d.setAttribute("aria-label","Quitar");d.onclick=()=>{S.words.splice(i,1);save();renderWords()};
+    acts.append(p,d);it.append(a,acts,sub);L.append(it);
+  });
+}
+$("#practiceWords").onclick=()=>openDrill("mias");
+
+/* ================= PROGRESS ================= */
+function renderProgress(){
+  const P=$("#progIn");P.innerHTML="";
+  P.append(el("h1",null,"Tu progreso"));
+  const keys=Object.keys(S.days).sort();
+  let streakDays=0;{const d=new Date();for(;;){const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const v=S.days[k];if(v&&(v.sent||v.drills)){streakDays++;d.setDate(d.getDate()-1)}else if(streakDays===0&&k===today()){d.setDate(d.getDate()-1)}else break}}
+  const tot=keys.reduce((a,k)=>{const v=S.days[k];a.sent+=v.sent;a.ok+=v.ok;a.secs+=v.secs;a.drills+=v.drills;a.xp+=v.xp;return a},{sent:0,ok:0,secs:0,drills:0,xp:0});
+  P.append(el("p",null,S.cefr?`Nivel estimado más reciente: ${S.cefr}`:"Termina una sesión con “Fin” para recibir tu nivel estimado."));
+  const k=el("div","kpis");[[`🔥 ${streakDays}`,streakDays===1?"día seguido":"días seguidos"],[tot.sent,"frases dichas"],[tot.sent?Math.round(tot.ok/tot.sent*100)+"%":"–","sin errores"],[Math.round(tot.secs/60),"minutos"]].forEach(([a,b])=>{const d=el("div","kpi");d.append(el("b",null,String(a)),el("span",null,b));k.append(d)});P.append(k);
+  // 14-day xp chart
+  const card=el("div","card");card.append(el("div","mono","Puntos por día · últimos 14 días"));
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const kk=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");days.push([d,(S.days[kk]||{}).xp||0])}
+  const max=Math.max(20,...days.map(x=>x[1]));const W=320,H=120,bw=W/14;
+  let svg=`<svg class="chart" viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Puntos por día">`;
+  [0,.5,1].forEach(f=>{const y=H-f*(H-10);svg+=`<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#24404A" stroke-width="1"/>`});
+  days.forEach(([d,v],i)=>{const h=v/max*(H-10);svg+=`<rect x="${i*bw+3}" y="${H-h}" width="${bw-6}" height="${Math.max(h,v?2:0)}" rx="3" fill="${i===13?"#6FE3D2":"rgba(111,227,210,.45)"}"/>`;if(i%2===1||i===13)svg+=`<text x="${i*bw+bw/2}" y="${H+12}" text-anchor="middle">${d.getDate()}</text>`});
+  svg+=`<text x="2" y="9">${max}</text></svg>`;card.insertAdjacentHTML("beforeend",svg);P.append(card);
+  const sc=el("div");sc.append(el("div","mono","Sesiones evaluadas"));
+  if(!S.sessions.length)sc.append(el("p","empty","Aquí verás tus sesiones cuando termines alguna con “Fin”."));
+  else{const L=el("div","sess");S.sessions.slice(0,15).forEach(s=>{const d=el("div");d.append(el("span","sc",String(s.score)));const m=el("span");m.append(s.topic+" ",el("i",null,`· ${s.d} · ${s.n} frases${s.cefr?" · "+s.cefr:""}`));d.append(m,el("span","mono",Math.round((s.secs||0)/60)+" min"));L.append(d)});sc.append(L)}
+  P.append(sc);
+}
+
+/* ================= TABS ================= */
+let curTab="talk";
+function showTab(t){
+  curTab=t;if(t!=="talk"){abortListening();hush();closeGloss()}
+  ["talk","drill","words","progress"].forEach(x=>$("#s-"+x).hidden=x!==t);
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===t)));
+  if(t==="words")renderWords();if(t==="progress")renderProgress();
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==="drill"&&!$("#drillcard").children.length)openDrill(deck);else showTab(t)});
+
+/* ================= SETTINGS ================= */
+function seg(id,list,cur,pick){const w=$(id);w.innerHTML="";list.forEach(([v,label,sub])=>{const b=el("button",null,label);b.type="button";if(sub)b.append(el("small",null," "+sub));b.setAttribute("aria-pressed",String(String(v)===String(cur)));b.onclick=()=>{pick(v);save();renderSheet()};w.append(b)})}
+function fillVoiceSel(){
+  const s=$("#voiceSel");s.innerHTML="";
+  if(!voices.length){s.append(el("option",null,synth?"Cargando voces…":"Este navegador no tiene voces"));s.disabled=true;return}
+  s.disabled=false;const cur=bestVoice();
+  voices.slice().sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name)).forEach(v=>{const o=el("option",null,`${v.name} · ${v.lang}`);o.value=v.name;if(cur&&v.name===cur.name)o.selected=true;s.append(o)});
+}
+function renderSheet(){
+  seg("#levelSeg",Object.entries(LEVELS).map(([k,v])=>[k,v[0],v[1]]),S.level,v=>S.level=v);
+  seg("#rateSeg",RATES,String(S.rate),v=>S.rate=parseFloat(v));
+  seg("#readFixSeg",[[1,"Sí"],[0,"No"]],S.readFix?1:0,v=>S.readFix=v===1);
+  seg("#autoSendSeg",[[1,"Sí"],[0,"No"]],S.autoSend?1:0,v=>S.autoSend=v===1);
+  fillVoiceSel();
+  const ms=$("#modelSel");ms.innerHTML="";const o0=el("option",null,"Automático (recomendado)");o0.value="auto";ms.append(o0);
+  (S.models.length?S.models:FALLBACK).forEach(m=>{const o=el("option",null,m);o.value=m;ms.append(o)});ms.value=S.model||"auto";
+  $("#modelInfo").textContent=S.lastGood?`Usando ahora: ${S.lastGood}. Si llegas al límite gratis, Nelgi prueba otro modelo solo.`:"Nelgi elige un modelo gratuito disponible.";
+}
+$("#gearBtn").onclick=()=>{renderSheet();$("#sheetMsg").textContent="";$("#sheet").hidden=false};
+$("#closeSheet").onclick=()=>$("#sheet").hidden=true;
+$("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")$("#sheet").hidden=true});
+$("#voiceSel").onchange=e=>{S.voice=e.target.value;save()};
+$("#modelSel").onchange=e=>{S.model=e.target.value;save()};
+$("#testVoice").onclick=()=>speak("Hi! I'm Nelgi. Can you hear me clearly?");
+$("#changeKey").onclick=()=>{$("#sheet").hidden=true;openSetup()};
+let resetArmed=false;
+$("#resetBtn").onclick=()=>{if(!resetArmed){resetArmed=true;$("#resetBtn").textContent="Toca otra vez para borrar";setTimeout(()=>{resetArmed=false;$("#resetBtn").textContent="Borrar todo"},4000);return}
+  const key=S.key;S=Object.assign({},DEF,{key,models:S.models});save();location.reload()};
+$("#exportBtn").onclick=async()=>{const data=JSON.stringify(Object.assign({},S,{key:undefined}));try{await navigator.clipboard.writeText(data);$("#sheetMsg").textContent="Respaldo copiado (sin tu clave). Pégalo en una nota para guardarlo."}catch(e){$("#sheetMsg").textContent="No se pudo copiar en este navegador."}};
+
+/* ================= SETUP ================= */
+function openSetup(){
+  $("#setup").hidden=false;$("#keyInput").value=S.key||"";
+  const lv=()=>seg("#setupLevel",Object.entries(LEVELS).map(([k,v])=>[k,v[0],v[1]]),S.level,v=>{S.level=v;lv()});lv();
+  $("#setupDone").disabled=!S.key;
+}
+$("#keyTest").onclick=async()=>{
+  const k=$("#keyInput").value.trim();const st=$("#keyStatus");
+  if(!k){st.className="status err";st.textContent="Pega tu clave primero.";return}
+  st.className="status";st.textContent="Conectando…";$("#keyTest").disabled=true;
+  try{const models=await listModels(k);S.key=k;S.models=models;save();
+    try{const r=await gemini("Reply only JSON.",[{role:"user",parts:[{text:'Say hello in JSON: {"hi":"..."}'}]}],{temperature:0});st.className="status ok";st.textContent="✓ Conectado con Gemini ("+(S.lastGood||models[0])+").";$("#setupDone").disabled=false}
+    catch(e){st.className="status err";st.textContent=e.kind==="quota"?"La clave funciona, pero Gemini dice que llegaste al límite. Espera un minuto y prueba de nuevo.":"La clave es válida, pero no respondió ningún modelo: "+e.message;S.key=k;save();$("#setupDone").disabled=false}
+  }catch(e){st.className="status err";st.textContent=e.kind==="key"?"Esa clave no funciona. Revisa que la copiaste completa.":"No hay conexión: "+e.message}
+  finally{$("#keyTest").disabled=false}
+};
+$("#setupMic").onclick=()=>{const st=$("#devStatus");if(!SR){st.className="status err";st.innerHTML=micErr("unsupported");return}
+  st.className="status";st.textContent="Di algo en inglés… (por ejemplo: Hello Nelgi)";
+  listen({onInterim:t=>st.textContent="Escuchando: "+t,onFinal:t=>{st.className="status ok";st.textContent="✓ Te escuché: “"+t+"”"},onEnd:got=>{if(!got&&st.className!=="status err"){st.className="status err";st.textContent="No te escuché. Intenta de nuevo, más cerca del teléfono."}},onError:c=>{st.className="status err";st.innerHTML=micErr(c)||"Error del micrófono: "+c}})};
+$("#setupVoice").onclick=()=>{const st=$("#devStatus");st.className="status";st.textContent="Deberías escuchar a Nelgi…";
+  speak("Hi! I'm Nelgi. Nice to meet you!",{onEnd:()=>{if(ttsOk){st.className="status ok";st.textContent="✓ La voz funciona."}else{st.className="status err";st.textContent="No se escuchó. Quita el modo silencio y sube el volumen de multimedia."}}})};
+$("#setupDone").onclick=()=>{$("#setup").hidden=true;renderTopics()};
+
+/* ================= WIRING ================= */
+function grow(){boxEl.style.height="auto";boxEl.style.height=Math.min(boxEl.scrollHeight,120)+"px"}
+boxEl.addEventListener("input",()=>{grow();if(!busy&&orb.state!=="speaking"&&!recActive)setOrb(boxEl.value.trim()?"listening":"idle")});
+boxEl.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#form").requestSubmit()}});
+$("#form").addEventListener("submit",e=>{e.preventDefault();const v=boxEl.value;boxEl.value="";grow();send(v,null)});
+$("#hintBtn").onclick=hints;$("#endBtn").onclick=endSession;$("#startBtn").onclick=begin;
+$("#repeatBtn").onclick=()=>lastSpoken&&say(lastSpoken);$("#slowBtn").onclick=()=>lastSpoken&&say(lastSpoken,{slow:true});
+const hf=$("#hfBtn");function hfUi(){hf.setAttribute("aria-pressed",String(S.handsFree));hf.textContent=S.handsFree?"📞 Modo llamada: sí":"📞 Modo llamada"}
+hf.onclick=()=>{S.handsFree=!S.handsFree;save();hfUi();if(S.handsFree&&started&&!busy&&!recActive&&!synth?.speaking)startTalkMic()};
+if(!SR){hf.hidden=true;micBtn.disabled=true;warn("talk",micErr("unsupported"))}
+
+renderTopics();hfUi();setOrb("idle");setStat("#sXp",day().xp);
+captionWords(TOPICS[S.topic].open,true);
+if(!S.key)openSetup();
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
