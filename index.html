@@ -323,7 +323,7 @@ select,input[type=text],input[type=password]{width:100%;background:var(--surface
     <div class="field"><span class="mono">Tu nivel</span><div class="seg" id="levelSeg"></div></div>
     <div class="field"><label class="mono" for="voiceSel">Voz de Nelgi</label><select id="voiceSel"></select><span class="help">Las voces con ♂ son masculinas. Si tu teléfono no tiene ninguna, Nelgi usa un tono más grave.</span></div>
     <div class="field"><span class="mono">Velocidad de la voz</span><div class="seg" id="rateSeg"></div></div>
-    <div class="field"><span class="mono">Leer mi frase corregida</span><div class="seg" id="readFixSeg"></div><span class="help">Si te equivocas, Nelgi dice primero la frase correcta y luego te responde.</span></div>
+    <div class="field"><span class="mono">Leer mi frase corregida</span><div class="seg" id="readFixSeg"></div><span class="help">Si te equivocas, después de responderte Nelgi repite despacio tu frase corregida.</span></div>
     <div class="field"><span class="mono">Enviar al terminar de hablar</span><div class="seg" id="autoSendSeg"></div><span class="help">Si lo apagas, puedes revisar lo que se entendió antes de enviarlo.</span></div>
     <div class="field"><label class="mono" for="modelSel">Modelo de Gemini</label><select id="modelSel"></select><span class="help" id="modelInfo"></span></div>
     <div class="rowbtns"><button class="btn main" id="testVoice" type="button">🔊 Probar voz</button><button class="btn" id="closeSheet" type="button">Listo</button></div>
@@ -421,10 +421,14 @@ function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 function day(){const k=today();if(!S.days[k])S.days[k]={sent:0,ok:0,xp:0,secs:0,drills:0};return S.days[k]}
 if(!TOPICS[S.topic])S.topic="libre";
 if(S.voiceVer!==2){S.voice="";S.voiceVer=2;save()}
+if(S.speedVer!==1){S.lastGood="";if(S.model&&!/lite/.test(S.model))S.model="auto";S.speedVer=1;save()}
 
 /* ================= GEMINI ================= */
 const API="https://generativelanguage.googleapis.com/v1beta";
-const FALLBACK=["gemini-3.5-flash","gemini-3.5-flash-lite","gemini-3.6-flash","gemini-3.1-flash-lite","gemini-2.5-flash"];
+const FALLBACK=["gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemini-3.5-flash","gemini-3.6-flash","gemini-2.5-flash"];
+const mver=n=>{const m=n.match(/gemini-(\d+)(?:\.(\d+))?/);return m?(+m[1])*100+(+(m[2]||0)):0};
+// Speed first: Flash-Lite answers fastest and has the most free quota.
+const modelScore=n=>(/preview/.test(n)?-50:0)+(/lite/.test(n)?8:0)+(/latest/.test(n)?-60:0)+(/-\d{3}$|-\d{2}-\d{4}/.test(n)?-40:0)+mver(n)/10;
 class GErr extends Error{constructor(kind,msg){super(msg);this.kind=kind}}
 async function listModels(key){
   const r=await fetch(API+"/models?pageSize=200",{headers:{"x-goog-api-key":key}});
@@ -434,42 +438,64 @@ async function listModels(key){
   const ver=n=>{const m=n.match(/gemini-(\d+)(?:\.(\d+))?/);return m?(+m[1])*100+(+(m[2]||0)):0};
   const names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""))
     .filter(n=>/^gemini-[\d.]+-flash/.test(n)&&!bad.test(n));
-  const score=n=>(/preview/.test(n)?-50:0)+(/lite/.test(n)?-5:0)+(/latest/.test(n)?-60:0)+(/-\d{3}$|-\d{2}-\d{4}/.test(n)?-40:0)+ver(n)/10;
-  const sorted=[...new Set(names)].sort((a,b)=>score(b)-score(a));
+  const sorted=[...new Set(names)].sort((a,b)=>modelScore(b)-modelScore(a));
   return sorted.length?sorted:FALLBACK;
 }
 function modelOrder(){
-  const list=(S.models&&S.models.length?S.models:FALLBACK).slice();
+  const list=(S.models&&S.models.length?S.models:FALLBACK).slice().sort((a,b)=>modelScore(b)-modelScore(a));
   if(S.model&&S.model!=="auto"){return [S.model,...list.filter(m=>m!==S.model)]}
   if(S.lastGood&&list.includes(S.lastGood))return [S.lastGood,...list.filter(m=>m!==S.lastGood)];
   return list;
 }
-async function gemini(system,contents,{json=true,temperature=0.8,signal}={}){
+function thinkCfg(model){if(S.noThink&&S.noThink[model])return null;return /lite/.test(model)?{thinkingLevel:"minimal"}:{thinkingLevel:"low"}}
+async function callModel(model,body,stream,signal){
+  const b=JSON.parse(JSON.stringify(body)),tc=thinkCfg(model);if(tc)b.generationConfig.thinkingConfig=tc;
+  const url=`${API}/models/${model}:${stream?"streamGenerateContent?alt=sse":"generateContent"}`;
+  const go=bd=>fetch(url,{method:"POST",signal,headers:{"Content-Type":"application/json","x-goog-api-key":S.key},body:JSON.stringify(bd)});
+  let r=await go(b);
+  if(!r.ok&&r.status===400&&tc){const j=await r.clone().json().catch(()=>({}));const m=(j.error&&j.error.message)||"";
+    if(!/api key|API_KEY/i.test(m)){S.noThink=S.noThink||{};S.noThink[model]=true;save();delete b.generationConfig.thinkingConfig;r=await go(b)}}
+  return r;
+}
+function partsText(j){const c=j&&j.candidates&&j.candidates[0];return c&&c.content&&c.content.parts?c.content.parts.filter(p=>!p.thought).map(p=>p.text||"").join(""):""}
+function httpErr(status,j){const msg=(j&&j.error&&j.error.message)||("HTTP "+status);
+  if(status===400&&/api key|API_KEY/i.test(msg))return [true,new GErr("key",msg)];
+  if(status===403)return [true,new GErr("key",msg)];
+  if(status===429)return [false,new GErr("quota",msg)];
+  return [false,new GErr("model",msg)]}
+function parseJson(text){try{return JSON.parse(text)}catch(e){const m=text.match(/[\[{][\s\S]*[\]}]/);if(m){try{return JSON.parse(m[0])}catch(e2){}}return null}}
+async function gemini(system,contents,{json=true,temperature=0.8,signal,onText}={}){
   if(!S.key)throw new GErr("key","Falta la clave de Gemini");
   const body={systemInstruction:{parts:[{text:system}]},contents,generationConfig:{temperature,maxOutputTokens:1200}};
   if(json)body.generationConfig.responseMimeType="application/json";
+  const stream=!!onText;
   let lastErr=null;
   for(const model of modelOrder().slice(0,4)){
     let r;
-    try{r=await fetch(`${API}/models/${model}:generateContent`,{method:"POST",signal,headers:{"Content-Type":"application/json","x-goog-api-key":S.key},body:JSON.stringify(body)})}
+    try{r=await callModel(model,body,stream,signal)}
     catch(e){if(e.name==="AbortError")throw e;lastErr=new GErr("net","Sin conexión a internet");continue}
-    const j=await r.json().catch(()=>({}));
-    if(r.ok){
-      const c=j.candidates&&j.candidates[0];
-      const text=c&&c.content&&c.content.parts?c.content.parts.filter(p=>!p.thought).map(p=>p.text||"").join(""):"";
-      if(!text){lastErr=new GErr("empty","Respuesta vacía");continue}
-      if(S.lastGood!==model){S.lastGood=model;save()}
-      if(!json)return text;
-      try{return JSON.parse(text)}catch(e){const m=text.match(/[\[{][\s\S]*[\]}]/);if(m){try{return JSON.parse(m[0])}catch(e2){}}lastErr=new GErr("json","Respuesta incompleta");continue}
-    }
-    const msg=(j.error&&j.error.message)||("HTTP "+r.status);
-    if(r.status===400&&/api key|API_KEY/i.test(msg))throw new GErr("key",msg);
-    if(r.status===403)throw new GErr("key",msg);
-    if(r.status===429){lastErr=new GErr("quota",msg);continue}
-    lastErr=new GErr("model",msg);continue;
+    if(!r.ok){const j=await r.json().catch(()=>({}));const [fatal,err]=httpErr(r.status,j);if(fatal)throw err;lastErr=err;continue}
+    let text="";
+    if(stream&&r.body&&r.body.getReader){
+      const rd=r.body.getReader(),dec=new TextDecoder();let buf="";
+      try{for(;;){const {value,done}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});
+        let i;while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);
+          if(line.startsWith("data:")){try{const t=partsText(JSON.parse(line.slice(5)));if(t){text+=t;onText(text)}}catch(e){}}}}}
+      catch(e){if(e.name==="AbortError")throw e;if(!text){lastErr=new GErr("net","Se cortó la conexión");continue}}
+    }else if(stream){const raw=await r.text();raw.split("\n").forEach(l=>{l=l.trim();if(l.startsWith("data:")){try{text+=partsText(JSON.parse(l.slice(5)))}catch(e){}}});if(text)onText(text)}
+    else{const j=await r.json().catch(()=>({}));text=partsText(j)}
+    if(!text){lastErr=new GErr("empty","Respuesta vacía");continue}
+    if(S.lastGood!==model){S.lastGood=model;save()}
+    if(!json)return text;
+    const out=parseJson(text);if(out)return out;
+    lastErr=new GErr("json","Respuesta incompleta");if(stream)throw lastErr;continue;
   }
   throw lastErr||new GErr("net","Error desconocido");
 }
+// Pull the "reply" string out of a JSON answer that is still arriving.
+function partialReply(t){const m=t.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)("?)/);if(!m)return null;
+  let raw=m[1].replace(/\\$/,"");let txt;try{txt=JSON.parse('"'+raw+'"')}catch(e){txt=raw.replace(/\\n/g," ").replace(/\\"/g,'"')}
+  return {text:txt.replace(/[*_#]/g,""),done:m[2]==='"'}}
 function errCopy(e){
   if(!e)return"Algo falló. Intenta de nuevo.";
   switch(e.kind){
@@ -692,19 +718,23 @@ async function send(text,alts){
   turns.push({role:"user",text:tag});
   setOrb("thinking");$("#voicebar").hidden=true;cap.className="caption";cap.innerHTML="";cap.append(el("span","cursor"));
   ctl=new AbortController();
+  let reply="",spoke=false,spokeDone=false,after=null;
+  const finish=()=>{if(!spokeDone||!after)return;const f=after;after=()=>{};f()};
+  const startReply=t=>{spoke=true;reply=t.trim();turns.push({role:"model",text:reply});addT(reply);say(reply,{after:()=>{spokeDone=true;finish()}})};
   try{
-    const r=await gemini(systemPrompt(),buildContents(),{signal:ctl.signal});
-    const reply=String(r.reply||"").replace(/[*_#]/g,"").trim();
+    const r=await gemini(systemPrompt(),buildContents(),{signal:ctl.signal,onText:t=>{
+      if(spoke)return;const pr=partialReply(t);if(!pr)return;
+      if(pr.done&&pr.text.trim())startReply(pr.text);else{setOrb("speaking");captionStream(pr.text,"")}}});
+    if(!spoke){const rp=String(r.reply||"").replace(/[*_#]/g,"").trim();if(rp)startReply(rp);else{spokeDone=true;setOrb("idle")}}
     const res={ok:!!r.ok,corrected:String(r.corrected||text),notes:Array.isArray(r.notes)?r.notes:[],natural:String(r.natural||""),pron:Array.isArray(r.pron)?r.pron:[]};
     const hasErr=addFix(text,res,voice);
     history.push({you:text,corrected:res.corrected,natural:res.natural,ok:!hasErr,pron:res.pron.map(p=>p.word)});
     const d=day();d.sent++;if(!hasErr)d.ok++;save();
-    if(reply){turns.push({role:"model",text:reply});addT(reply);
-      if(hasErr&&S.readFix)say(res.corrected,{after:()=>setTimeout(()=>say(reply,{after:autoListen}),350)});
-      else say(reply,{after:autoListen});
-    }else setOrb("idle");
+    // After Nelgi finishes talking: say the corrected sentence (if any), then listen again.
+    after=()=>{if(hasErr&&S.readFix)setTimeout(()=>say(res.corrected,{slow:true,after:autoListen}),300);else autoListen()};
+    finish();
   }catch(e){
-    turns.pop();setOrb("idle");captionWords(lastSpoken||"",true);
+    if(!spoke){turns.pop();setOrb("idle");captionWords(lastSpoken||"",true)}
     if(e.name!=="AbortError")addSys(errCopy(e));
   }finally{busy=false;$("#send").disabled=false;micBtn.disabled=false}
 }
