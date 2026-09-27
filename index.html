@@ -321,7 +321,7 @@ select,input[type=text],input[type=password]{width:100%;background:var(--surface
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <h2 id="sheetTitle">Ajustes</h2>
     <div class="field"><span class="mono">Tu nivel</span><div class="seg" id="levelSeg"></div></div>
-    <div class="field"><label class="mono" for="voiceSel">Voz de Nelgi</label><select id="voiceSel"></select></div>
+    <div class="field"><label class="mono" for="voiceSel">Voz de Nelgi</label><select id="voiceSel"></select><span class="help">Las voces con ♂ son masculinas. Si tu teléfono no tiene ninguna, Nelgi usa un tono más grave.</span></div>
     <div class="field"><span class="mono">Velocidad de la voz</span><div class="seg" id="rateSeg"></div></div>
     <div class="field"><span class="mono">Leer mi frase corregida</span><div class="seg" id="readFixSeg"></div><span class="help">Si te equivocas, Nelgi dice primero la frase correcta y luego te responde.</span></div>
     <div class="field"><span class="mono">Enviar al terminar de hablar</span><div class="seg" id="autoSendSeg"></div><span class="help">Si lo apagas, puedes revisar lo que se entendió antes de enviarlo.</span></div>
@@ -420,6 +420,7 @@ function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function day(){const k=today();if(!S.days[k])S.days[k]={sent:0,ok:0,xp:0,secs:0,drills:0};return S.days[k]}
 if(!TOPICS[S.topic])S.topic="libre";
+if(S.voiceVer!==2){S.voice="";S.voiceVer=2;save()}
 
 /* ================= GEMINI ================= */
 const API="https://generativelanguage.googleapis.com/v1beta";
@@ -484,11 +485,18 @@ const synth=("speechSynthesis" in window)?window.speechSynthesis:null;
 let voices=[];
 function loadVoices(){try{voices=synth?synth.getVoices().filter(v=>/^en[-_]/i.test(v.lang)):[]}catch(e){voices=[]}if(!$("#sheet").hidden)fillVoiceSel()}
 if(synth){loadVoices();try{synth.addEventListener("voiceschanged",loadVoices)}catch(e){synth.onvoiceschanged=loadVoices}}
+// Nelgi is male: prefer male voices. Android/Chrome voice ids: iom, iol, tpd are male; sfg, tpc, tpf are female.
+const MALE=/(x-iom|x-iol|x-tpd|\bguy\b|david|mark|daniel|alex|fred|aaron|arthur|evan|nathan|oliver|ryan|christopher|eric|matthew|brian|george|\btom\b|andrew|davis|jason|tony|roger|steffan|brandon|christian|\bmale\b)/i;
+const FEMALE=/(x-sfg|x-tpc|x-tpf|female|samantha|zira|jenny|aria|\bava\b|allison|susan|karen|moira|victoria|tessa|serena|fiona|emma|michelle|joanna|salli|kimberly|libby|sonia|sara|jane|nancy|google us english)/i;
+function isMale(v){const id=v.name+" "+(v.voiceURI||"");return MALE.test(id)&&!FEMALE.test(id)}
 function bestVoice(){
   if(S.voice){const v=voices.find(v=>v.name===S.voice);if(v)return v}
   const us=voices.filter(v=>/en[-_]US/i.test(v.lang)),pool=us.length?us:voices;
-  return pool.find(v=>/natural|neural|premium|enhanced/i.test(v.name))||pool.find(v=>/google/i.test(v.name))||pool.find(v=>/samantha|jenny|aria|ava|allison/i.test(v.name))||pool[0]||null;
+  const males=pool.filter(isMale).concat(voices.filter(v=>!pool.includes(v)&&isMale(v)));
+  const nice=males.filter(v=>/natural|neural|premium|enhanced|network/i.test(v.name+" "+(v.voiceURI||"")));
+  return nice[0]||males[0]||pool.find(v=>/google/i.test(v.name))||pool[0]||null;
 }
+function voicePitch(){const v=bestVoice();return v&&isMale(v)?0.98:0.8}
 let speakTok=0,ttsOk=null;
 function speak(text,{onWord,onEnd,slow}={}){
   const tok=++speakTok;
@@ -498,7 +506,7 @@ function speak(text,{onWord,onEnd,slow}={}){
   const words=[...text.matchAll(/\S+/g)].map(m=>m.index);
   const u=new SpeechSynthesisUtterance(text),v=bestVoice();
   if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
-  u.rate=slow?Math.max(.55,S.rate-.3):S.rate;u.pitch=1.02;u.volume=1;
+  u.rate=slow?Math.max(.55,S.rate-.3):S.rate;u.pitch=voicePitch();u.volume=1;
   let gotB=false,fb=null,wi=-1,began=false;
   const fire=i=>{if(tok!==speakTok||i<=wi)return;wi=i;onWord&&onWord(i);orb.kick=1};
   u.onboundary=e=>{if(e.name&&e.name!=="word")return;gotB=true;clearInterval(fb);let i=0;while(i+1<words.length&&words[i+1]<=e.charIndex)i++;fire(i)};
@@ -622,7 +630,7 @@ function addSys(text){txIn.append(el("div","sys",text));down()}
 
 function systemPrompt(){
   const L=LEVELS[S.level];
-  return `You are Nelgi, a warm, witty, very knowledgeable English coach in a speaking-practice app. You know English deeply (grammar, idioms, pronunciation, business English) and can talk about any topic. The learner is a Spanish-speaking finance manager from Costa Rica.
+  return `You are Nelgi, a warm, witty, very knowledgeable male English coach in a speaking-practice app. You know English deeply (grammar, idioms, pronunciation, business English) and can talk about any topic. The learner is a Spanish-speaking finance manager from Costa Rica.
 CURRENT MODE: ${TOPICS[S.topic].mode}
 Learner level ${L[0]}: ${L[2]}
 If the learner asks something about English in any mode, answer briefly, then continue.
@@ -907,7 +915,7 @@ function fillVoiceSel(){
   const s=$("#voiceSel");s.innerHTML="";
   if(!voices.length){s.append(el("option",null,synth?"Cargando voces…":"Este navegador no tiene voces"));s.disabled=true;return}
   s.disabled=false;const cur=bestVoice();
-  voices.slice().sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name)).forEach(v=>{const o=el("option",null,`${v.name} · ${v.lang}`);o.value=v.name;if(cur&&v.name===cur.name)o.selected=true;s.append(o)});
+  voices.slice().sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name)).forEach(v=>{const o=el("option",null,`${isMale(v)?"♂ ":""}${v.name} · ${v.lang}`);o.value=v.name;if(cur&&v.name===cur.name)o.selected=true;s.append(o)});
 }
 function renderSheet(){
   seg("#levelSeg",Object.entries(LEVELS).map(([k,v])=>[k,v[0],v[1]]),S.level,v=>S.level=v);
