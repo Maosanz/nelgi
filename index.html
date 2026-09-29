@@ -56,9 +56,9 @@ h1,h2,h3{text-wrap:balance}
 /* ---------- conversation ---------- */
 #s-talk{grid-template-rows:auto auto auto minmax(0,1fr) auto;background:radial-gradient(90% 50% at 50% 12%, rgba(111,227,210,.15) 0%, var(--bg) 70%)}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 4px;max-width:880px;width:100%;margin:0 auto;min-width:0}
-.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;flex:1}
 .brand b{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1}
-.brand span{font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{font-size:12px;color:var(--ink-2);display:flex;gap:6px;align-items:center;white-space:nowrap;font-variant-numeric:tabular-nums}
 .live{width:7px;height:7px;border-radius:50%;background:#3DDC84;flex:none}
 .stats{display:flex;gap:6px;flex:none;align-items:center}
 .stat{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:13px;display:flex;gap:5px;align-items:center;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -87,7 +87,8 @@ h1,h2,h3{text-wrap:balance}
 @keyframes blink{50%{opacity:0}}
 .voicebar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .vb{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13.5px}
-.gloss{position:absolute;bottom:-6px;left:50%;transform:translate(-50%,100%);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;z-index:4;width:max-content;max-width:min(92vw,340px);box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:6px}
+.gloss{position:fixed;bottom:calc(190px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;z-index:4;width:max-content;max-width:min(92vw,340px);box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:6px}
+.gloss{z-index:25}
 .gloss b{color:var(--p)} .gloss i{color:var(--ink-2);font-size:13px}
 .startbtn{margin-top:4px;background:var(--p);color:var(--p-ink);border:none;border-radius:999px;padding:13px 26px;font-weight:700;font-size:17px;animation:pulse 2.2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(111,227,210,.5)}70%{box-shadow:0 0 0 14px rgba(111,227,210,0)}100%{box-shadow:0 0 0 0 rgba(111,227,210,0)}}
@@ -99,7 +100,7 @@ h1,h2,h3{text-wrap:balance}
 .m{max-width:86%;display:flex;flex-direction:column;gap:5px;animation:rise .35s ease-out both}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}}
 .m.t{align-self:flex-start} .m.u{align-self:flex-end;align-items:flex-end}
-.b{padding:9px 14px;border-radius:18px;font-size:15.5px;overflow-wrap:anywhere}
+.b{padding:9px 14px;border-radius:18px;font-size:16px;line-height:1.45;overflow-wrap:anywhere}
 .t .b{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:5px}
 .u .b{background:var(--warm);color:var(--warm-ink);border-bottom-right-radius:5px}
 .u .via{font-size:11.5px;color:var(--ink-3)}
@@ -144,6 +145,24 @@ textarea:focus{border-color:var(--p);outline:none}
 .mic:disabled{opacity:.45}
 .handsfree{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 10px}
 .handsfree[aria-pressed="true"]{color:var(--p);border-color:var(--p)}
+/* after the session starts, the stage shrinks to a slim status row so the conversation gets the space */
+#s-talk.started .stage{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;align-items:center;gap:10px;padding:6px 16px 8px}
+#s-talk.started .orbwrap{width:50px}
+#s-talk.started .orbname{font-size:17px}
+#s-talk.started .caption,#s-talk.started .startbtn{display:none}
+#s-talk.started .voicebar{margin-left:auto;flex-wrap:nowrap}
+#s-talk.started .warnbox{flex-basis:100%;max-width:none}
+#s-talk.started .pop{top:auto;bottom:-20px}
+.vb{white-space:nowrap}
+.t .b .w{border-radius:4px;cursor:pointer;transition:background .15s}
+.t .b .w.now{background:rgba(111,227,210,.35);color:#fff}
+.t .b.live{border-color:rgba(111,227,210,.5)}
+.t .b .cursor{display:inline-block;width:2px;height:1em;background:var(--p);vertical-align:-2px;margin-left:3px;animation:blink 1s steps(1) infinite}
+.row .mic{width:48px;height:48px;box-shadow:none}
+.row .mic svg{width:24px;height:24px}
+.dockfoot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.endlink{background:none;border:1px solid rgba(229,72,77,.5);color:var(--end);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700}
+
 
 /* ---------- pronunciation drill ---------- */
 #s-drill,#s-words,#s-progress{background:radial-gradient(100% 50% at 50% 0%, rgba(111,227,210,.10) 0%, var(--bg) 60%)}
@@ -257,8 +276,8 @@ select,input[type=text],input[type=password]{width:100%;background:var(--surface
       <div class="caption done" id="caption" aria-live="polite"></div>
       <button class="startbtn" id="startBtn" type="button">▶ Empezar a hablar con Nelgi</button>
       <div class="voicebar" id="voicebar" hidden>
-        <button class="vb" id="repeatBtn" type="button">🔁 Repetir</button>
-        <button class="vb" id="slowBtn" type="button">🐢 Más lento</button>
+        <button class="vb" id="repeatBtn" type="button" aria-label="Repetir">🔁 Repetir</button>
+        <button class="vb" id="slowBtn" type="button" aria-label="Más lento">🐢 Lento</button>
       </div>
       <div class="warnbox" id="talkWarn" hidden></div>
     </div>
@@ -266,16 +285,16 @@ select,input[type=text],input[type=password]{width:100%;background:var(--surface
     <div class="dock">
       <div class="dock-in">
         <div class="ideas" id="ideas"></div>
-        <div class="microw">
-          <button class="tool" id="hintBtn" type="button" aria-label="Ideas para responder" title="Ideas para responder">💡</button>
-          <button class="handsfree" id="hfBtn" type="button" aria-pressed="false" title="Nelgi te escucha automáticamente después de hablar">📞 Modo llamada</button>
-          <button class="mic" id="micBtn" type="button" aria-label="Hablar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
-          <button class="tool end" id="endBtn" type="button" title="Terminar y ver evaluación">Fin</button>
-        </div>
         <form class="row" id="form">
-          <textarea id="box" rows="1" placeholder="O escribe en inglés…" aria-label="Escribe en inglés"></textarea>
-          <button class="send" id="send" type="submit" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button class="tool" id="hintBtn" type="button" aria-label="Ideas para responder" title="Ideas para responder">💡</button>
+          <textarea id="box" rows="1" placeholder="Habla o escribe en inglés…" aria-label="Escribe en inglés"></textarea>
+          <button class="send" id="send" type="submit" aria-label="Enviar" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button class="mic" id="micBtn" type="button" aria-label="Hablar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
         </form>
+        <div class="dockfoot">
+          <button class="handsfree" id="hfBtn" type="button" aria-pressed="false" title="Nelgi te escucha automáticamente después de hablar">📞 Modo llamada</button>
+          <button class="endlink" id="endBtn" type="button">Terminar y evaluar</button>
+        </div>
       </div>
     </div>
   </section>
@@ -413,7 +432,7 @@ const DECKS={
 const $=s=>document.querySelector(s);
 function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 const STORE_KEY="nelgi.v1";
-const DEF={key:"",models:[],model:"auto",level:"B1",rate:0.9,voice:"",readFix:true,autoSend:true,handsFree:false,topic:"libre",words:[],days:{},sessions:[]};
+const DEF={key:"",models:[],model:"auto",level:"B1",rate:0.9,voice:"",readFix:false,autoSend:true,handsFree:true,topic:"libre",words:[],days:{},sessions:[]};
 let S=Object.assign({},DEF);
 try{Object.assign(S,JSON.parse(localStorage.getItem(STORE_KEY)||"{}"))}catch(e){}
 function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}}
@@ -421,6 +440,7 @@ function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 function day(){const k=today();if(!S.days[k])S.days[k]={sent:0,ok:0,xp:0,secs:0,drills:0};return S.days[k]}
 if(!TOPICS[S.topic])S.topic="libre";
 if(S.voiceVer!==2){S.voice="";S.voiceVer=2;save()}
+if(S.flowVer!==1){S.handsFree=true;S.readFix=false;S.flowVer=1;save()}
 if(S.speedVer!==1){S.lastGood="";if(S.model&&!/lite/.test(S.model))S.model="auto";S.speedVer=1;save()}
 
 /* ================= GEMINI ================= */
@@ -628,8 +648,36 @@ function captionWords(text,done){cap.className="caption"+(done?" done":"");cap.i
 function captionAt(i){cap.querySelectorAll(".w").forEach(w=>{const k=+w.dataset.i;w.classList.toggle("said",k<i);w.classList.toggle("now",k===i)});const n=cap.querySelector(".now");if(n)n.scrollIntoView({block:"nearest"})}
 function captionDone(){cap.querySelectorAll(".now").forEach(w=>w.classList.remove("now"));cap.classList.add("done")}
 let lastSpoken="";
-function say(text,opts={}){lastSpoken=text;captionWords(text,false);$("#voicebar").hidden=false;
-  speak(text,{slow:opts.slow,onWord:captionAt,onEnd:()=>{captionDone();setOrb("idle");opts.after&&opts.after()}})}
+function bubbleWords(b,text){b.textContent="";let i=0;for(const p of text.split(/(\s+)/)){if(!p)continue;if(/^\s+$/.test(p)){b.append(p);continue}const w=el("span","w",p);w.dataset.i=i++;w.onclick=ev=>{ev.stopPropagation();gloss(w,text)};b.append(w)}}
+function bubbleAt(b,i){if(!b)return;b.querySelectorAll(".w").forEach(w=>w.classList.toggle("now",+w.dataset.i===i));const n=b.querySelector(".now");if(n&&curTab==="talk")n.scrollIntoView({block:"nearest",behavior:"smooth"})}
+function say(text,opts={}){lastSpoken=text;$("#voicebar").hidden=false;
+  const b=opts.bubble||null;if(!started)captionWords(text,false);
+  speak(text,{slow:opts.slow,onWord:i=>{if(b)bubbleAt(b,i);else if(!started)captionAt(i)},onEnd:()=>{if(b)bubbleAt(b,-1);captionDone();setOrb("idle");opts.after&&opts.after()}})}
+
+/* Speak a reply sentence by sentence while it is still arriving. */
+function streamSpeaker(bubble,onAllDone){
+  const tok=++speakTok;stopListening();try{synth&&synth.cancel()}catch(e){}
+  let queued=0,ended=false,finished=false,base=0;
+  const check=()=>{if(tok!==speakTok||finished)return;if(ended&&queued===0){finished=true;bubbleAt(bubble,-1);setOrb("idle");onAllDone&&onAllDone()}};
+  function push(sentence){
+    sentence=sentence.trim();if(!sentence)return;
+    const words=[...sentence.matchAll(/\S+/g)].map(m=>m.index),b0=base;base+=words.length;
+    if(!synth){return}
+    queued++;
+    const u=new SpeechSynthesisUtterance(sentence),v=bestVoice();
+    if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+    u.rate=S.rate;u.pitch=voicePitch();u.volume=1;
+    let doneOnce=false,guard=null;
+    const fin=()=>{if(doneOnce)return;doneOnce=true;clearTimeout(guard);queued--;check()};
+    u.onstart=()=>{if(tok!==speakTok)return;ttsOk=true;hideWarn("talk");setOrb("speaking");bubbleAt(bubble,b0);orb.kick=1;
+      clearTimeout(guard);guard=setTimeout(fin,(words.length*60000/(120*u.rate))+4000)};
+    u.onboundary=e=>{if(tok!==speakTok||(e.name&&e.name!=="word"))return;let i=0;while(i+1<words.length&&words[i+1]<=e.charIndex)i++;bubbleAt(bubble,b0+i);orb.kick=1};
+    u.onend=fin;u.onerror=fin;
+    guard=setTimeout(()=>{if(ttsOk!==true)ttsWarn();fin()},8000+words.length*400);
+    try{synth.speak(u)}catch(e){fin()}
+  }
+  return {push,end(){ended=true;check()},get tok(){return tok}};
+}
 
 let glossEl=null;
 function closeGloss(){if(glossEl){glossEl.remove();glossEl=null}}
@@ -638,7 +686,7 @@ async function gloss(span,sentence){
   speak(word,{slow:true});
   const g=el("div","gloss");glossEl=g;const head=el("div");head.append(el("b",null,word+" "),el("span",null,"…"));g.append(head);
   const acts=el("div","hear");const sv=el("button",null,"⭐ Guardar");sv.type="button";const pl=el("button",null,"🐢 Oír");pl.type="button";pl.onclick=()=>speak(word,{slow:true});acts.append(pl,sv);g.append(acts);
-  $("#stage").append(g);
+  document.body.append(g);
   let es="";sv.onclick=()=>{sv.textContent=saveWord(word,es,"traducción")?"✓ Guardada":"✓ Ya estaba";sv.disabled=true};
   try{const r=await gemini("You translate English words for a Spanish-speaking learner. Reply only JSON.",[{role:"user",parts:[{text:`Word: "${word}". Sentence: "${sentence}". Reply JSON: {"es":"Spanish translation in this context (1-4 words)","ipa":"IPA","note":"very short usage note in Spanish (max 12 words) or empty"}`}]}],{temperature:.2});
     if(glossEl!==g)return;es=r.es||"";head.lastChild.textContent=`${r.ipa?r.ipa+" ":""}— ${es}`;if(r.note)head.after(el("i",null,r.note));
@@ -650,7 +698,12 @@ document.addEventListener("click",e=>{if(glossEl&&!e.target.closest(".gloss"))cl
 const txIn=$("#txIn"),tx=$("#tx");
 let turns=[],history=[],busy=false,ctl=null,t0=0,timer=null,started=false,streak=0,best=0;
 function down(){requestAnimationFrame(()=>tx.scrollTop=tx.scrollHeight)}
-function addT(text){const m=el("div","m t"),b=el("div","b",text),p=el("button","play","▶ Escuchar");p.type="button";p.onclick=()=>say(text);b.append(" ",p);m.append(b);txIn.append(m);down()}
+function addT(text,live){const m=el("div","m t"),b=el("div","b");const txt=el("span","txt");b.append(txt);
+  const p=el("button","play","▶ Escuchar");p.type="button";
+  const api={m,b,txt,set(t,cursor){bubbleWords(txt,t);if(cursor)txt.append(el("span","cursor"));p.onclick=()=>say(t,{bubble:txt})},done(t){b.classList.remove("live");this.set(t,false);b.append(" ",p)}};
+  m.append(b);txIn.append(m);
+  if(live){b.classList.add("live");api.set(text||"",true)}else api.done(text);
+  down();return api}
 function addU(text,voice){const m=el("div","m u");m.append(el("div","b",text));if(voice)m.append(el("span","via","🎙️ dicho en voz alta"));txIn.append(m);down()}
 function addSys(text){txIn.append(el("div","sys",text));down()}
 
@@ -663,14 +716,15 @@ If the learner asks something about English in any mode, answer briefly, then co
 
 Each learner message is marked [VOICE] (it came from a speech recognizer, with alternatives and confidence) or [TYPED].
 
-Return ONLY a JSON object:
+OUTPUT FORMAT, exactly two parts:
+1) Your reply as plain text, to be read aloud: natural spoken English, contractions, short reactions, 1-3 short sentences, usually ending with a question. React to what they meant. No emojis, lists or markdown. Never mention their mistakes here.
+2) A line with only ###, then ONLY this JSON object:
 {
- "reply": "your answer, spoken out loud: natural spoken English, contractions, short reactions, 1-3 short sentences, usually ending with a question. React to what they meant. No emojis, lists or markdown. Never mention their mistakes here.",
  "ok": true if the message has no real language errors, else false,
  "corrected": "their message with MINIMAL fixes (grammar, tense, prepositions, word choice, false friends like actually/actualmente, assist/asistir). Identical if ok. Never change capitalization or punctuation alone: those never count as errors.",
  "notes": ["up to 3 short explanations in Spanish (under 18 words each) of the fixes; if ok, one short Spanish compliment or tip, or empty"],
  "natural": "how a native speaker would naturally say the same idea, or empty string if already natural",
- "pron": [ only for [VOICE] messages: words the learner most likely MISPRONOUNCED, deduced from the recognizer output: a word that makes no sense in context but sounds like the intended word (e.g. heard "sheet" when "shit"? no: heard "live" when they meant "leave"), disagreement between alternatives, or low confidence. Each item: {"heard":"what the recognizer wrote","word":"the intended word","ipa":"IPA of the intended word","tip":"one practical tip in Spanish on how to pronounce it, under 20 words"}. Max 3 items. Empty array if nothing points to a pronunciation problem. Do not flag words just because they are hard. ]
+ "pron": [ only for [VOICE] messages: words the learner most likely MISPRONOUNCED, deduced from the recognizer output: a word that makes no sense in context but sounds like the intended word (e.g. heard "live" when they meant "leave"), disagreement between alternatives, or low confidence. Each item: {"heard":"what the recognizer wrote","word":"the intended word","ipa":"IPA of the intended word","tip":"one practical tip in Spanish on how to pronounce it, under 20 words"}. Max 3 items. Empty array if nothing points to a pronunciation problem. Do not flag words just because they are hard. ]
 }
 For [VOICE] messages, first infer what the learner meant to say (fix recognizer mishearings), then judge grammar on that intended sentence; a misheard word is a pronunciation issue, not a grammar error.`;
 }
@@ -684,26 +738,26 @@ function renderTopics(){const w=$("#topics");w.innerHTML="";Object.entries(TOPIC
 function switchTopic(k){
   if(ctl)ctl.abort();abortListening();S.topic=k;save();renderTopics();$("#ideas").innerHTML="";
   const o=TOPICS[k].open;if(!started){captionWords(o,true);return}
-  addSys("Tema: "+TOPICS[k].label);turns.push({role:"model",text:o});addT(o);say(o,{after:autoListen});
+  addSys("Tema: "+TOPICS[k].label);turns.push({role:"model",text:o});const bb=addT(o);say(o,{bubble:bb.txt,after:autoListen});
 }
 function begin(){
-  if(started)return;started=true;$("#startBtn").hidden=true;
+  if(started)return;started=true;$("#startBtn").hidden=true;$("#s-talk").classList.add("started");
   t0=Date.now();clearInterval(timer);timer=setInterval(tick,1000);tick();
-  const o=TOPICS[S.topic].open;turns.push({role:"model",text:o});addT(o);say(o,{after:autoListen});
+  const o=TOPICS[S.topic].open;turns.push({role:"model",text:o});const bb=addT(o);say(o,{bubble:bb.txt,after:autoListen});
 }
 function tick(){const s=Math.floor((Date.now()-t0)/1000);$("#clock").textContent="En sesión · "+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
-function autoListen(){if(S.handsFree&&started&&!busy&&curTab==="talk"&&$("#summary").hidden)setTimeout(()=>{if(!busy&&!recActive)startTalkMic()},250)}
+function autoListen(){if(S.handsFree&&started&&!busy&&curTab==="talk"&&$("#summary").hidden&&$("#sheet").hidden)setTimeout(()=>{if(!busy&&!recActive&&!(synth&&synth.speaking))startTalkMic()},150)}
 
 /* mic in conversation */
 const micBtn=$("#micBtn"),boxEl=$("#box");
 function setMicUi(on){micBtn.classList.toggle("on",on);micBtn.setAttribute("aria-label",on?"Detener":"Hablar")}
 function startTalkMic(){
   if(!started)begin();
-  closeGloss();hush();setMicUi(true);setOrb("listening");captionStream("…","interim");
+  closeGloss();hush();setMicUi(true);setOrb("listening");
   listen({
-    onInterim:t=>{captionStream(t||"…","interim");boxEl.value=t;grow()},
-    onFinal:(t,alts)=>{boxEl.value="";grow();if(S.autoSend)send(t,alts);else{boxEl.value=t;grow();boxEl.focus()}},
-    onEnd:got=>{setMicUi(false);if(!got&&!busy){setOrb("idle");captionWords(lastSpoken||TOPICS[S.topic].open,true)}},
+    onInterim:t=>{boxEl.value=t;grow()},
+    onFinal:(t,alts)=>{boxEl.value="";grow();if(S.autoSend)send(t,alts);else{boxEl.value=t;grow();micSendUi();boxEl.focus()}},
+    onEnd:got=>{setMicUi(false);if(!got&&!busy)setOrb("idle")},
     onError:code=>{setMicUi(false);setOrb("idle");const m=micErr(code);if(m)warn("talk",m)}
   });
 }
@@ -716,25 +770,40 @@ async function send(text,alts){
   const voice=!!alts;addU(text,voice);
   const tag=voice?`[VOICE] top: "${text}"${alts[0]&&alts[0].c?` (confidence ${alts[0].c.toFixed(2)})`:""}${alts.length>1?` | alternatives: ${alts.slice(1).map(a=>`"${a.t}"`).join(", ")}`:""}`:`[TYPED] ${text}`;
   turns.push({role:"user",text:tag});
-  setOrb("thinking");$("#voicebar").hidden=true;cap.className="caption";cap.innerHTML="";cap.append(el("span","cursor"));
+  setOrb("thinking");
   ctl=new AbortController();
-  let reply="",spoke=false,spokeDone=false,after=null;
+  const t0r=performance.now();let firstT=0;
+  let bubble=null,spk=null,said=0,reply="",replyEnded=false,spokeDone=false,after=null;
   const finish=()=>{if(!spokeDone||!after)return;const f=after;after=()=>{};f()};
-  const startReply=t=>{spoke=true;reply=t.trim();turns.push({role:"model",text:reply});addT(reply);say(reply,{after:()=>{spokeDone=true;finish()}})};
+  const feed=(full,final)=>{
+    const i=full.indexOf("###");const cutAt=i>=0?i:(final?full.length:-1);
+    reply=(cutAt>=0?full.slice(0,cutAt):full).replace(/[*_#]/g,"").replace(/^\s*(reply|nelgi)\s*:\s*/i,"");
+    if(!reply.trim())return;
+    if(!bubble){bubble=addT("",true);spk=streamSpeaker(bubble.txt,()=>{spokeDone=true;finish()});$("#voicebar").hidden=false}
+    if(!replyEnded)bubble.set(reply.trim(),cutAt<0);
+    // speak every sentence that is complete
+    let rest=reply.slice(said),m;
+    while((m=rest.match(/^[\s\S]*?[.!?…]+["')\]]*(?=\s)/))){spk.push(m[0]);said+=m[0].length;rest=reply.slice(said);if(!firstT)firstT=performance.now()}
+    if(cutAt>=0&&!replyEnded){replyEnded=true;if(rest.trim()){spk.push(rest);if(!firstT)firstT=performance.now()}said=reply.length;
+      const r=reply.trim();bubble.done(r);lastSpoken=r;turns.push({role:"model",text:r});spk.end()}
+  };
   try{
-    const r=await gemini(systemPrompt(),buildContents(),{signal:ctl.signal,onText:t=>{
-      if(spoke)return;const pr=partialReply(t);if(!pr)return;
-      if(pr.done&&pr.text.trim())startReply(pr.text);else{setOrb("speaking");captionStream(pr.text,"")}}});
-    if(!spoke){const rp=String(r.reply||"").replace(/[*_#]/g,"").trim();if(rp)startReply(rp);else{spokeDone=true;setOrb("idle")}}
-    const res={ok:!!r.ok,corrected:String(r.corrected||text),notes:Array.isArray(r.notes)?r.notes:[],natural:String(r.natural||""),pron:Array.isArray(r.pron)?r.pron:[]};
-    const hasErr=addFix(text,res,voice);
-    history.push({you:text,corrected:res.corrected,natural:res.natural,ok:!hasErr,pron:res.pron.map(p=>p.word)});
-    const d=day();d.sent++;if(!hasErr)d.ok++;save();
-    // After Nelgi finishes talking: say the corrected sentence (if any), then listen again.
-    after=()=>{if(hasErr&&S.readFix)setTimeout(()=>say(res.corrected,{slow:true,after:autoListen}),300);else autoListen()};
+    const full=await gemini(systemPrompt(),buildContents(),{json:false,signal:ctl.signal,onText:t=>feed(t,false)});
+    feed(full,true);
+    if(!bubble){spokeDone=true;setOrb("idle")}
+    S.lastLatency=((firstT||performance.now())-t0r)/1000;save();
+    const i=full.indexOf("###");const r=i>=0?(parseJson(full.slice(i+3))||{}):{};
+    if(i>=0&&Object.keys(r).length){
+      const res={ok:!!r.ok,corrected:String(r.corrected||text),notes:Array.isArray(r.notes)?r.notes:[],natural:String(r.natural||""),pron:Array.isArray(r.pron)?r.pron:[]};
+      const hasErr=addFix(text,res,voice);
+      history.push({you:text,corrected:res.corrected,natural:res.natural,ok:!hasErr,pron:res.pron.map(p=>p.word)});
+      const d=day();d.sent++;if(!hasErr)d.ok++;save();
+      // After Nelgi finishes talking: say the corrected sentence (if any), then listen again.
+      after=()=>{if(hasErr&&S.readFix)setTimeout(()=>say(res.corrected,{slow:true,after:autoListen}),300);else autoListen()};
+    }else{history.push({you:text,corrected:text,natural:"",ok:true,pron:[]});after=autoListen}
     finish();
   }catch(e){
-    if(!spoke){turns.pop();setOrb("idle");captionWords(lastSpoken||"",true)}
+    if(!bubble){turns.pop();setOrb("idle")}else if(!replyEnded){const r=reply.trim();bubble.done(r);turns.push({role:"model",text:r});spk&&spk.end()}
     if(e.name!=="AbortError")addSys(errCopy(e));
   }finally{busy=false;$("#send").disabled=false;micBtn.disabled=false}
 }
@@ -788,7 +857,7 @@ async function hints(){
   const last=[...turns].reverse().find(x=>x.role==="model");const q=last?last.text:TOPICS[S.topic].open;
   const box=$("#ideas");box.innerHTML="";const l=el("span","loading");l.innerHTML='<span class="dots"><span></span><span></span><span></span></span>';box.append(l);
   try{const arr=await gemini("You help an English learner reply in a conversation. Reply only JSON.",[{role:"user",parts:[{text:`Context: ${TOPICS[S.topic].label}. The coach just said: "${q}". Give 3 natural replies a ${S.level}-level learner could say, different in style, each under 18 words. JSON: {"ideas":["...","...","..."]}`}]}],{temperature:1});
-    box.innerHTML="";(r=>Array.isArray(r)?r:(r.ideas||[]))(arr).slice(0,3).forEach(s=>{const b=el("button","idea",String(s));b.type="button";b.onclick=()=>{say(String(s),{slow:false});boxEl.value=String(s);grow();box.innerHTML=""};box.append(b)});
+    box.innerHTML="";(r=>Array.isArray(r)?r:(r.ideas||[]))(arr).slice(0,3).forEach(s=>{const b=el("button","idea",String(s));b.type="button";b.onclick=()=>{say(String(s),{slow:false});boxEl.value=String(s);grow();micSendUi();box.innerHTML=""};box.append(b)});
   }catch(e){box.innerHTML="";addSys(errCopy(e))}
 }
 
@@ -805,7 +874,7 @@ async function endSession(){
   const body=el("div");body.style.cssText="display:flex;flex-direction:column;gap:18px";W.append(body);
   const cta=el("div","rowbtns"),again=el("button","btn main","Seguir practicando");again.type="button";
   again.onclick=()=>{O.hidden=true;if(started){t0=Date.now()-secs*1000;day().secs-=secs;save();timer=setInterval(tick,1000)}};
-  const fresh=el("button","btn","Nueva sesión");fresh.type="button";fresh.onclick=()=>{O.hidden=true;turns=[];history=[];streak=0;best=0;setStat("#sStreak",0);txIn.innerHTML="";started=false;begin()};
+  const fresh=el("button","btn","Nueva sesión");fresh.type="button";fresh.onclick=()=>{O.hidden=true;turns=[];history=[];streak=0;best=0;setStat("#sStreak",0);txIn.innerHTML="";started=false;$("#s-talk").classList.remove("started");begin()};
   cta.append(again,fresh);W.append(cta);
   if(!n){body.append(el("p",null,"Todavía no hay frases tuyas en esta sesión. Conversa un poco con Nelgi y vuelve para ver tu evaluación."));return}
   const l=el("div","loading");l.innerHTML='<span class="dots"><span></span><span></span><span></span></span> Nelgi está preparando tu evaluación…';body.append(l);
@@ -955,7 +1024,7 @@ function renderSheet(){
   fillVoiceSel();
   const ms=$("#modelSel");ms.innerHTML="";const o0=el("option",null,"Automático (recomendado)");o0.value="auto";ms.append(o0);
   (S.models.length?S.models:FALLBACK).forEach(m=>{const o=el("option",null,m);o.value=m;ms.append(o)});ms.value=S.model||"auto";
-  $("#modelInfo").textContent=S.lastGood?`Usando ahora: ${S.lastGood}. Si llegas al límite gratis, Nelgi prueba otro modelo solo.`:"Nelgi elige un modelo gratuito disponible.";
+  $("#modelInfo").textContent=S.lastGood?`Usando ahora: ${S.lastGood}.${S.lastLatency?` Última respuesta: empezó a hablar en ${S.lastLatency.toFixed(1)} s.`:""} Si llegas al límite gratis, Nelgi prueba otro modelo solo.`:"Nelgi elige un modelo gratuito disponible.";
 }
 $("#gearBtn").onclick=()=>{renderSheet();$("#sheetMsg").textContent="";$("#sheet").hidden=false};
 $("#closeSheet").onclick=()=>$("#sheet").hidden=true;
@@ -994,9 +1063,10 @@ $("#setupDone").onclick=()=>{$("#setup").hidden=true;renderTopics()};
 
 /* ================= WIRING ================= */
 function grow(){boxEl.style.height="auto";boxEl.style.height=Math.min(boxEl.scrollHeight,120)+"px"}
-boxEl.addEventListener("input",()=>{grow();if(!busy&&orb.state!=="speaking"&&!recActive)setOrb(boxEl.value.trim()?"listening":"idle")});
+function micSendUi(){const has=!!boxEl.value.trim()&&!recActive;$("#send").hidden=!has;micBtn.hidden=has}
+boxEl.addEventListener("input",()=>{grow();micSendUi();if(!busy&&orb.state!=="speaking"&&!recActive)setOrb(boxEl.value.trim()?"listening":"idle")});
 boxEl.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#form").requestSubmit()}});
-$("#form").addEventListener("submit",e=>{e.preventDefault();const v=boxEl.value;boxEl.value="";grow();send(v,null)});
+$("#form").addEventListener("submit",e=>{e.preventDefault();const v=boxEl.value;boxEl.value="";grow();micSendUi();send(v,null)});
 $("#hintBtn").onclick=hints;$("#endBtn").onclick=endSession;$("#startBtn").onclick=begin;
 $("#repeatBtn").onclick=()=>lastSpoken&&say(lastSpoken);$("#slowBtn").onclick=()=>lastSpoken&&say(lastSpoken,{slow:true});
 const hf=$("#hfBtn");function hfUi(){hf.setAttribute("aria-pressed",String(S.handsFree));hf.textContent=S.handsFree?"📞 Modo llamada: sí":"📞 Modo llamada"}
