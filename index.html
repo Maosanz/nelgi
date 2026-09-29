@@ -97,17 +97,18 @@ h1,h2,h3{text-wrap:balance}
 
 .tx{overflow-y:auto;overflow-x:hidden;border-top:1px solid var(--line);background:rgba(4,10,13,.45);min-width:0}
 .tx-in{max-width:760px;margin:0 auto;padding:14px 16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.m{max-width:86%;display:flex;flex-direction:column;gap:5px;animation:rise .35s ease-out both}
+.m{max-width:86%;display:flex;flex-direction:column;gap:5px;animation:rise .35s ease-out both;min-width:0}
+.m.t{min-width:min(220px,86%)}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}}
 .m.t{align-self:flex-start} .m.u{align-self:flex-end;align-items:flex-end}
-.b{padding:9px 14px;border-radius:18px;font-size:16px;line-height:1.45;overflow-wrap:anywhere}
+.b{padding:10px 15px;border-radius:20px;font-size:16px;line-height:1.5;overflow-wrap:break-word;word-break:normal}
 .t .b{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:5px}
 .u .b{background:var(--warm);color:var(--warm-ink);border-bottom-right-radius:5px}
 .u .via{font-size:11.5px;color:var(--ink-3)}
 .play{background:none;border:none;color:var(--p);padding:0 0 0 6px;font-size:13px;white-space:nowrap}
 .fx{align-self:flex-end;max-width:90%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;animation:rise .4s ease-out both}
 .fx .mono{color:var(--gold)} .fx.ok .mono{color:var(--good)}
-.diff{font-size:15.5px;line-height:1.7;overflow-wrap:anywhere}
+.diff{font-size:15.5px;line-height:1.7;overflow-wrap:break-word}
 .diff del{color:var(--del);background:var(--del-bg);text-decoration-thickness:2px;border-radius:4px;padding:0 3px}
 .diff ins{color:var(--ins);background:var(--ins-bg);text-decoration:none;border-radius:4px;padding:0 3px;font-weight:700}
 .fx ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink-2)}
@@ -123,6 +124,15 @@ h1,h2,h3{text-wrap:balance}
 .pw .ipa{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
 .pw .tip{font-size:14px;color:var(--ink-2)}
 .pw .res{font-size:13.5px}
+/* compact correction */
+.fx.mini{padding:4px 12px;border-radius:999px;flex-direction:row}
+.fx.mini .mono{font-size:10.5px}
+.more summary{cursor:pointer;color:var(--p);font-size:13.5px;list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.more summary::before{content:"▸ "}
+.more[open] summary::before{content:"▾ "}
+.more[open]{display:flex;flex-direction:column;gap:8px}
+.more>*+*{margin-top:6px}
 .sys{align-self:center;font-size:13.5px;color:var(--warm);text-align:center;max-width:46ch}
 
 .dock{padding:8px 16px 10px;border-top:1px solid var(--line);background:var(--bg-2);min-width:0}
@@ -649,7 +659,7 @@ function captionAt(i){cap.querySelectorAll(".w").forEach(w=>{const k=+w.dataset.
 function captionDone(){cap.querySelectorAll(".now").forEach(w=>w.classList.remove("now"));cap.classList.add("done")}
 let lastSpoken="";
 function bubbleWords(b,text){b.textContent="";let i=0;for(const p of text.split(/(\s+)/)){if(!p)continue;if(/^\s+$/.test(p)){b.append(p);continue}const w=el("span","w",p);w.dataset.i=i++;w.onclick=ev=>{ev.stopPropagation();gloss(w,text)};b.append(w)}}
-function bubbleAt(b,i){if(!b)return;b.querySelectorAll(".w").forEach(w=>w.classList.toggle("now",+w.dataset.i===i));const n=b.querySelector(".now");if(n&&curTab==="talk")n.scrollIntoView({block:"nearest",behavior:"smooth"})}
+function bubbleAt(b,i){return;if(!b)return;b.querySelectorAll(".w").forEach(w=>w.classList.toggle("now",+w.dataset.i===i));const n=b.querySelector(".now");if(n&&curTab==="talk")n.scrollIntoView({block:"nearest",behavior:"smooth"})}
 function say(text,opts={}){lastSpoken=text;$("#voicebar").hidden=false;
   const b=opts.bubble||null;if(!started)captionWords(text,false);
   speak(text,{slow:opts.slow,onWord:i=>{if(b)bubbleAt(b,i);else if(!started)captionAt(i)},onEnd:()=>{if(b)bubbleAt(b,-1);captionDone();setOrb("idle");opts.after&&opts.after()}})}
@@ -810,12 +820,16 @@ async function send(text,alts){
 
 function addFix(orig,r,voice){
   const hasErr=!r.ok&&r.corrected&&!same(r.corrected,orig);
-  const f=el("div","fx"+(hasErr?"":" ok"));
+  let f=el("div","fx"+(hasErr?"":" ok"));
   const notes=r.notes.filter(Boolean).map(String);
   f.append(el("div","mono",hasErr?`Corrección · ${notes.length||1} ${notes.length>1?"ajustes":"ajuste"}`:"✓ Bien dicho"));
   if(hasErr)f.append(renderDiff(orig,r.corrected));
-  if(notes.length){const ul=el("ul");notes.forEach(n=>ul.append(el("li",null,n)));f.append(ul)}
   const nat=r.natural&&!same(r.natural,r.corrected||orig)?r.natural:"";
+  const pr=(r.pron||[]).filter(p=>p&&p.word).slice(0,3);
+  if(!hasErr&&!nat&&!(voice&&pr.length)){f.classList.add("mini");txIn.append(f);down();streak++;best=Math.max(best,streak);addXp(15);popup("good",streak>=3?`🔥 ¡${streak} seguidas!`:"✓ ¡Perfecto!");setStat("#sStreak",streak);return false}
+  const more=el("details","more");const sm=el("summary",null,hasErr?"Ver explicación":"Ver cómo lo diría un nativo");more.append(sm);
+  const fx=f;f=more;
+  if(notes.length){const ul=el("ul");notes.forEach(n=>ul.append(el("li",null,n)));f.append(ul)}
   if(nat){const p=el("div","nat");p.append("Un nativo diría: ",el("span",null,"“"+nat+"”"));f.append(p)}
   const h=el("div","hear");const mk=(label,fn)=>{const b=el("button",null,label);b.type="button";b.onclick=fn;h.append(b)};
   if(hasErr){mk("▶ Correcta",()=>say(r.corrected));mk("🐢 Lento",()=>say(r.corrected,{slow:true}))}
@@ -823,12 +837,13 @@ function addFix(orig,r,voice){
   const target=nat||(hasErr?r.corrected:"");
   if(target&&SR)mk("🎙️ Repetirla",()=>{S._drillCustom=[[target,"Frase de tu conversación"]];openDrill("custom")});
   if(h.children.length)f.append(h);
-  const pr=(r.pron||[]).filter(p=>p&&p.word).slice(0,3);
   if(voice&&pr.length){
     const box=el("div","pron");box.append(el("div","mono","🎙️ Pronunciación"));
     pr.forEach(p=>{saveWord(p.word,"","pronunciación");box.append(pronItem(p))});
     f.append(box);
+    sm.textContent=hasErr?"Ver explicación y pronunciación":"🎙️ Ver palabras para practicar";
   }
+  fx.append(more);f=fx;
   txIn.append(f);down();
   if(hasErr){streak=0;addXp(5);popup("fix","✏️ "+(notes.length>1?notes.length+" correcciones":"1 corrección"))}
   else{streak++;best=Math.max(best,streak);addXp(nat?10:15);popup("good",pr.length&&voice?"🎙️ Revisa la pronunciación":streak>=3?`🔥 ¡${streak} seguidas!`:"✓ ¡Perfecto!")}
